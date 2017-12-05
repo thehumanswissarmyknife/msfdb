@@ -164,8 +164,6 @@ function fillPositionDetails (pos) {
         var skill = returnedSkill.name;
         var level = returnedSkill.level;
         var descriptions = returnedSkill.descriptions;
-        $("#pos-det-skills-accordion").append("<h4>Los</H4><div class='' id='pos-det-skills-accordion-"+id+"'><ul><li>Per</li><li>Perse</li><li>Person</li></ul></div>");
-        $("#pos-det-skills-accordion").append("<h4>Los jetzt</H4><div class='' id='pos-det-skills-accordion-"+id+"'><ul><li>Per</li><li>Perse</li><li>Person</li></ul></div>");
 
         console.log("Descriptions", descriptions);
 
@@ -180,40 +178,6 @@ function fillPositionDetails (pos) {
 
     });
 
-$( document ).ajaxStop( function () {
-  $("#pos-det-skills-accordion").accordion({
-          collapsible: true,
-          heightStyle: "content"   
-        }); 
-});
-
-
-
-
-
-    // position.skills.forEach( function (elSkill) {
-
-    //   $.getJSON(myURL + "full-skillcomps/" + elSkill, function (skillData) {
-    //     var id = skillData._id;
-    //     var descriptions = skillData.descriptions;
-    //     console.log("outer el", descriptions);
-    //     $("#pos-det-skills-accordion").append("<h4>"+toTitleCase(skillData.name) +" "+skillData.level+ "</H4><div id='pos-det-skills-accordion-"+id+"'><ul></ul></div>");
-
-    //     $( "#pos-det-skills-accordion").accordion({
-    //       collapsible: true,
-    //       heightStyle: "content"   
-    //     });  
-    //     skillData.descriptions.forEach( function (descrData) {
-    //       $("#pos-det-skills-accordion-"+id+" ul").append("<li class='draggable ui-draggable ui-draggable-handle position' >"+descrData.description+"</li>");
-    //       console.log("Inner element:", descrData.description);
-
-    //     })
-
-    //   })
-
-
-        
-    // })
 
 
   }
@@ -310,21 +274,6 @@ $( document ).ajaxStop( function () {
 
     } );
 
-  // $( function() {
-      
-  //   } );
-
-  //   $( function() {
-
-  //   } );
-
-  //     $( function() {
-
-  //   } );
-
-  //     $( function() {
-
-  //     } );
 
 }
 
