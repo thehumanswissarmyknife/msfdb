@@ -561,7 +561,7 @@ async function getFullPosition2 (id) {
 		var irffg = thisPosition.irffg;
 
 		// arrays for final results
-		
+		var nextPositions = [];
 		var requirements = [];
 		var learnings = [];
 		var skills = ["Peter"];
@@ -574,9 +574,10 @@ async function getFullPosition2 (id) {
 		var skillsArray = thisPosition.skills;
 		var compsArray = thisPosition.competencies;
 
-		var nextPositions = await getNextPositions(nextPositionsArray);
-
-		console.log("LearningsArray", learningsArray)
+		nextPositionsArray.forEach(async function (nextPos) {
+			var myNextPosition = await Position.findById(nextPos);
+			nextPositions.push({title: myNextPosition.title, _id: myNextPosition._id});
+		})
 
 		// get info for the next positions
 
@@ -701,15 +702,5 @@ async function asyncForEach(array, callback) {
   for (let index = 0; index < array.length; index++) {
     await callback(array[index], index, array)
   }
-}
-
-async function getNextPositions (array) {
-	var nextPositions = [];
-	array.forEach ( async function (nextPos) {
-		var position = await Position.findById(nextPos);
-		// var myNextPosition = await Position.findById(nextPos);
-		await nextPositions.push({title: myNextPosition.title, _id: myNextPosition._id});
-	})
-	return nextPositions;
 }
 
