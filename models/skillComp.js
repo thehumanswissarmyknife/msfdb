@@ -9,7 +9,8 @@ var skillCompSchema = new Schema ({
 	level: {
 		type:Number,
 		required: true},
-	descriptors: Array
+	descriptions: Array,
+	type: String
 });
 
 var SkillComp = mongoose.model('SkillComp', skillCompSchema);

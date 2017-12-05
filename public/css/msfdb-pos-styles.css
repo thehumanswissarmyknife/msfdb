@@ -1,0 +1,111 @@
+.path {
+	background-color: white;
+	height: 100%;
+}
+
+#details {
+	background-color: green;
+	height: 100%;
+}
+#title {
+	text-align: center;
+}
+
+#content {
+	height: 100%;
+}
+body {
+    font-family: 'Helvetica Neue', Arial;
+}
+
+.row {
+    background-color: rgb(60, 60, 60);
+    color: white;
+    text-align: center;
+    padding-top: 15px;
+}
+
+.position-bar {
+    position:fixed;
+    height:100%;
+    width:200px;
+    overflow-y:auto;
+    font-size: 14px;
+    background-color: rgb(230, 230, 230);
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+/* visited link */
+a:visited {
+    color: black;
+}
+
+/* selected link */
+a:active {
+    color: blue;
+}
+.position-details {
+    position: fixed;
+    margin-left: 205px;
+    margin-right:200px;
+    width:calc(100% - 410px);
+    overflow-y:auto;
+    height: 100%; 
+    background-color: rgb(80, 80, 80);
+    color: white;
+    padding: 5px 5px 5px 15px;
+    z-index: 0;
+}
+
+.pos-detail-header {
+    height:2em;
+}
+.pos-detail-irffg {
+    font-size: 14px;
+    color:rgb(200, 200, 200);
+}
+
+.position-toolbar {
+    position:fixed;
+    height:100%;
+    width:200px;
+    right:0px;
+    overflow-y:auto;
+    font-size: 14px;
+    background-color: rgb(230, 230, 230);
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.position-toolbar ul{
+    padding-left: 0px
+}
+
+.myDropzone {
+    border-width: 1px;
+    border-style: dotted;
+    border-color: grey;
+    padding: 5px 5px 5px 5px;
+}
+
+#pos-det-skillcomps {
+    width:100%;
+    min-height: 200px;
+    max-height: 500px;
+}
+
+#pos-det-skills {
+    width: 50%;
+    float: left;
+    height: 100%;
+}
+
+#pos-det-comps {
+    width: 50%;
+    float: left;
+    height: 100%
+}
+
+
+

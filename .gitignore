@@ -2,3 +2,4 @@
 package-lock.json
 /mongo-data
 /logs
+nohup.out
