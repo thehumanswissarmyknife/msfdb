@@ -50,8 +50,8 @@ a:active {
     margin-left: 205px;
     margin-right:200px;
     width:calc(100% - 410px);
-    overflow-y:auto;
-    height: 100%; 
+    overflow-y:scroll;
+    height: calc(100% - 50px); 
     background-color: rgb(80, 80, 80);
     color: white;
     padding: 5px 5px 5px 15px;
@@ -107,5 +107,52 @@ a:active {
     height: 100%
 }
 
+.pos-det-skills-accordion-description {
+    padding-left: 5px;
+    margin-left: 5px;
+    font-size: 12px;
+}
+
+.pos-det-skills-accordion {
+    padding-left: 5px;
+    font-size: 14px;
+}
+
+.modal {
+    display:    none;
+    position:   fixed;
+    z-index:    1000;
+    top:        0;
+    left:       0;
+    height:     100%;
+    width:      100%;
+    background: rgba( 255, 255, 255, .9 ) 
+                url('http://i.stack.imgur.com/FhHRx.gif')
+                50% 50% 
+                no-repeat;
+}
+
+/* When the body has the loading class, we turn
+   the scrollbar off with overflow:hidden */
+body.loading {
+    overflow: hidden;   
+}
+
+/* Anytime the body has the loading class, our
+   modal element will be visible */
+body.loading .modal {
+    display: block;
+}
+
+#learning-form-wrapper {
+    padding: 20px 20px 20px 20px;
+    /*display:    none;*/
+    position:   fixed;
+    z-index: 1000;
+    min-height: 200px;
+    width: 300px;
+    margin: auto auto auto auto;
+    background-color: white;
+}
 
 

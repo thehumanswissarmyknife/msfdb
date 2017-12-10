@@ -13,12 +13,15 @@ var {Action} = require('./models/action');
 var {Description} = require('./models/description');
 var {Knowledge} = require('./models/knowledge');
 var {Learning} = require('./models/learning')
+/**Including these two libraries to control flow */
+var async = require('async');
+var flowControl = require('./customlib/flowControl');
 
 const port = process.env.PORT || 3000;
-const mongoCon = process.env.MONGODB_URI || 'mongodb://localhost:30001/msfdb';
+const mongoCon = process.env.MONGODB_URI || 'mongodb://165.227.162.247:30001/msfdb';
 
 // connection to the db
-mongoose.connect('mongodb://localhost:30001/msfdb', { useMongoClient: true });
+mongoose.connect('mongodb://165.227.162.247:30001/msfdb', { useMongoClient: true });
 mongoose.Promise = global.Promise;
 
 // json parser for the Posting and getting
@@ -83,7 +86,8 @@ app.get('/position/:id', async (req, res) => {
 
 app.patch('/position/:id', async (req, res) => {
 	var id = req.params.id;
-	var body = _.pick(req.body, ['nextPositions', 'skills', 'competencies']);
+	var body = _.pick(req.body, ['nextPositions', 'skills', 'competencies', 'learnings']);
+	console.log("Body", body);
 	if (!ObjectID.isValid(req.params.id)) {
 		return res.status(404).send({});
 	} 
@@ -92,40 +96,42 @@ app.patch('/position/:id', async (req, res) => {
 	try {
 		thisPosition = await Position.findByIdAndUpdate(id, {$addToSet: body}, {new: true});
 		res.status(200).send({position: thisPosition, status: 'updated'});
+		console.log("position patched with: ", body);
 	} catch(e){
 		res.status(400).send(e);
 	};
 
 });
 
-app.get('/full-positions', async (req, res) => {
-	try {
-		var positionArray = await Position.find();
-		// console.log("positionArray", positionArray);
-		var positions = [];
+// app.get('/full-positions', async (req, res) => {
+// 	try {
+// 		var positionArray = await Position.find();
+// 		// console.log("positionArray", positionArray);
+// 		var positions = [];
 
-		for(var i = 0; i < positionArray.length; i++) {
-			// console.log("skillCompArray[i]._id: ", positionArray[i]._id);
-			positions.push(await getFullPosition(positionArray[i]._id));
-		}
+// 		for(var i = 0; i < positionArray.length; i++) {
+// 			// console.log("skillCompArray[i]._id: ", positionArray[i]._id);
+// 			positions.push(await getFullPosition2(positionArray[i]._id));
+// 		}
 
-		res.status(200).send({positions});
-	} catch (e) {
-		res.status(404).send(e);
-	}
+// 		res.status(200).send({positions});
+// 	} catch (e) {
+// 		res.status(404).send(e);
+// 	}
 
-})
+// })
 
 app.get('/full-position/:id', async (req, res) => {
 	var id = req.params.id;
-	try {
+	//try {
 		console.log("full-position");		
-		var thisPosition = await getFullPosition2(id);
-		console.log("thisPos", thisPosition);
-		res.status(200).send({position: thisPosition});
-	} catch (e) {
-		res.status(404).send(e);
-	}
+		getFullPosition2(id,function(err,thisPosition){
+			console.log("thisPos", err || thisPosition);
+			res.status(200).send({position: thisPosition});
+		});
+	// } catch (e) {
+	// 	res.status(404).send(e);
+	// }
 
 })
 // SKILLCOMPS
@@ -548,14 +554,15 @@ async function getFullPosition(id) {
 
 }
 
-async function getFullPosition2 (id) {
-
+function getFullPosition2 (id,callback) {
 	if (!ObjectID.isValid(id)) {
-		throw "bad killcomp ID";
+		return callback(new Error("bad killcomp ID"),null);;
 	};
 
-	try {
-		var thisPosition = await Position.findById(id);
+		console.log('gettting position...');
+		Position.findById(id).then(function(thisPosition){
+		console.log('got position')
+		console.log(thisPosition);
 		var title = thisPosition.title;
 		var level = thisPosition.level;
 		var irffg = thisPosition.irffg;
@@ -564,7 +571,7 @@ async function getFullPosition2 (id) {
 		var nextPositions = [];
 		var requirements = [];
 		var learnings = [];
-		var skills = ["Peter"];
+		var skills = [];
 		var comps = [];
 
 		// arrays for storing the ids to look up..
@@ -574,53 +581,156 @@ async function getFullPosition2 (id) {
 		var skillsArray = thisPosition.skills;
 		var compsArray = thisPosition.competencies;
 
-		nextPositionsArray.forEach(async function (nextPos) {
-			var myNextPosition = await Position.findById(nextPos);
-			nextPositions.push({title: myNextPosition.title, _id: myNextPosition._id});
-		})
+		async.waterfall([
+			function(done){
+				console.log('-----------STEP 1--------');
+				console.log(nextPositionsArray);
+				var len = nextPositionsArray.length,index=0;
+				if(len <= 0)
+					done(null);
+				nextPositionsArray.forEach(function (nextPos) {
+					Position.findById(nextPos).then(function(myNextPosition){
+						console.log(myNextPosition);
+						if(myNextPosition)
+							nextPositions.push({title: myNextPosition.title, _id: myNextPosition._id});
+						if(++index >= len)  {
+							console.log('+++++++++STEP 1 successfully completed+++');
+							// get info for the next positions
+							console.log("nextPositions", nextPositions);
+							done(null);
+						}
+					///	console.log(index)
+					},function(){
+						if(++index >= len)  {
+							console.log('+++++++++STEP 1 successfully completed+++');
+							// get info for the next positions
+							console.log("nextPositions", nextPositions);
+							done(null);
+						}
+					});
+				})
+			},
+			function(done){
+				var tasksArray = [];
+				console.log('-------------STEP 2-----------');
+				console.log(requirementsArray)
+				
+				// get info for all requirements
+				requirementsArray.forEach(function (reqs) {
+					//making a task array that will functions containing task against each element in array
+					tasksArray.push(
+						function(next){
+							var posArray = [];
+							var len = reqs.positions.length,index=0;
+							reqs.positions.forEach(function (pos) {
+								Position.findById(pos).then(function(thisPosition){
+									//making main requirements array
+									console.log("----------posArray.length", posArray.length);
+									console.log("----------reqs.positions.length", reqs.positions.length);	
+									if(posArray.length < reqs.positions.length){
+										posArray.push({title: thisPosition.title, _id: thisPosition._id});
+									} else {
+										posArray = [];
+									}
+									// posArray.push({title: thisPosition.title, _id: thisPosition._id});
+									// requirements.push({positions: [{title: thisPosition.title, _id: thisPosition._id}], months: reqs.months, missions: reqs.missions});
+									if(++index >= len)  {
+										console.log('+++++++++STEP 2 internal completed+++');
+										next();
+									}
+								},function(errPos){
+									if(++index >= len)  {
+										console.log('+++++++++STEP 2 internal completed+++');
+										next();
+									}
+								});
+							})
+							requirements.push({positions: posArray, months: reqs.months, missions: reqs.missions});
+						}
+					)
+				});
 
-		// get info for the next positions
+				if(tasksArray.length <= 0)
+					done(null);
+				flowControl.series(tasksArray,function(_status){
+					console.log('------------------STEP 2 COMPLETED----------');
+					console.log("requirements", requirements);
+					done(null);
+				});
+			},
+			function(done){
+				console.log('-------------STEP 3-----------');
+				console.log(learningsArray);
+				var tasksArray = [];
+				learningsArray.forEach(function (learn) {
+					tasksArray.push(
+						function(next){
+							Learning.findById(learn.learning).then(function(thisLearning){
+								// var temp = {learning: thisLearning.name, learningId: thisLearning._id, mandatory: learn.mandatory, timing: learn.timing};
+								// console.log("thisLearning", temp);
+								learnings.push({learning: thisLearning.name, learningId: thisLearning._id, mandatory: learn.mandatory, timing: learn.timing});
+								next();
+							});
+						}
+					);
+				});
 
-
-		console.log("nextPositions", nextPositions);
-
-		// get info for all requirements
-		requirementsArray.forEach(async function (reqs) {
-			var posArray = [];
-			reqs.positions.forEach( async function (pos) {
-				var thisPosition = await Position.findById(pos);
-				await posArray.push({title: thisPosition.title, _id: thisPosition._id});
-			})
-			await requirements.push({positions: posArray, months: reqs.months, missions: reqs.missions});
-		})
-		console.log("requirements", requirements);
-
-		learningsArray.forEach( async function (learn) {
-			var thisLearning = await Learning.findById(learn.learning);
-			var temp = {learning: thisLearning.name, learningId: thisLearning._id, mandatory: learn.mandatory, timing: learn.timing};
-			console.log("thisLearning", temp);
-			await learnings.push({learning: thisLearning.name, learningId: thisLearning._id, mandatory: learn.mandatory, timing: learn.timing});
-			console.log("pushed learning", learnings);
-		})
-		await console.log("learnings after loop", learnings);
-
-		skillsArray.forEach( async function (skill) {
-			var thisSkill = await getFullSkillComp(skill);
-			skills.push(thisSkill);
-		})
-		console.log("skills", skills);
-
-		compsArray.forEach( async function (comp) {
-			var thisComp = await getFullSkillComp(comp);
-			comps.push(thisComp);
-		})
-		console.log("comps", comps);
-
-		return ({_id: thisPosition._id, title, level, irffg, nextPositions, requirements, learnings, skills, competencies: comps});
-
-	} catch (e) {
-		return e;
-	}
+				if(tasksArray.length <= 0)
+					 done(null);
+				flowControl.series(tasksArray,function(_status){
+					console.log('------------------STEP 3 COMPLETED----------');
+					console.log("learnings after loop", learnings);
+					done(null);
+				});
+			},
+			function(done){
+				console.log('-------------STEP 4-----------');
+				console.log(skillsArray);
+				var len = skillsArray.length,index=0;
+				skillsArray.forEach(function (skill) {
+					getFullSkillComp(skill).then(function(thisSkill){
+						skills.push(thisSkill);
+						if(++index >= len)  {
+							console.log('+++++++++STEP 4 completed+++');
+							console.log("skills", skills);
+							done(null);
+						}
+					},function(err){
+						if(++index >= len)  {
+							console.log('+++++++++STEP 4 completed+++');
+							console.log("skills", skills);
+							done(null);
+						}
+					});
+				});
+			},
+			function(done){
+				console.log('-------------STEP 5-----------');
+				console.log(compsArray);
+				var len = compsArray.length,index=0;
+				compsArray.forEach( function (comp) {
+					getFullSkillComp(comp).then(function(thisComp){
+						comps.push(thisComp);
+						if(++index >= len)  {
+							console.log('+++++++++STEP 5 completed+++');
+							console.log("comps", comps);
+							done(null,{_id: thisPosition._id, title, level, irffg, nextPositions, requirements, learnings, skills, competencies: comps});
+						}
+					},function(err){
+						if(++index >= len)  {
+							console.log('+++++++++STEP 5 completed+++');
+							console.log("comps", comps);
+							done(null,{_id: thisPosition._id, title, level, irffg, nextPositions, requirements, learnings, skills, competencies: comps});
+						}
+					});
+				})
+			}
+		],
+		function(err,results){
+			//finally returning the result
+			callback(err,results);
+		});
+	});
 }
 
 

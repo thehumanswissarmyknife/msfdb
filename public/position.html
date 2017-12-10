@@ -6,12 +6,14 @@
     <link rel="stylesheet" type="text/css" href="./css/msfdb-pos-styles.css">
     <link rel="stylesheet" type="text/css" href="./css/jquery-ui.min.css">
     <link rel="stylesheet" type="text/css" href="./css/bootstrap.min.css">
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <!-- <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"> -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
     <!-- <link rel="stylesheet" type="text/css" href="./bootstrap/css/bootstrap.css"> -->
     <script src="./js/jquery-3.1.0.min.js"></script>
     <script src="./js/jquery-ui.min.js"></script>
     <script src="./bootstrap/js/bootstrap.js"></script>
+    <script src="./js/async.min.js"></script>
+    <script src="./js/lodash.core.js"></script>
 
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
@@ -19,7 +21,9 @@
     $( function() {
       $( "#accordion" ).accordion({
         collapsible: true,
-        heightStyle: "content"
+        heightStyle: "content",
+        active: false   
+
         
       });
       $( "#pos-det-skills-accordion").accordion({
@@ -27,15 +31,24 @@
         heightStyle: "content"
         
       });    
+      
 
 
     } );
+
+    $body = $("body");
+
+    $(document).on({
+        ajaxStart: function() { $body.addClass("loading");    },
+         ajaxStop: function() { $body.removeClass("loading"); }    
+    });
     </script>
 
 
   </head>
 
   <body>
+
       <div class="row" id="hr">
         <div class="col-12"><h2>MSF HR Positions and their details</h2></div>
       </div>
@@ -63,6 +76,6 @@
       </div>
       
        <script src="./js/msfdb_position.js"></script>
-
+       <div class="modal"><!-- Place at bottom of page --></div>
   </body>
 </html>
