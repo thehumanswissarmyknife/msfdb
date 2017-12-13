@@ -37,7 +37,8 @@ mongoose.Promise = global.Promise;
 
 // removeAllDescriptions();
 // updateDescriptions();
-updateActions() ;
+// updateActions() ;
+// removeAllNextPositions();
 
 
 
@@ -105,6 +106,21 @@ async function removeAllDescriptions() {
 		skillcomps.forEach( async function (element) {
 			var thisSkill = await SkillComp.findByIdAndUpdate(element._id, { $set : {descriptions: [] }});
 			console.log("Skill", thisSkill);
+		})
+	} catch (e){
+		console.log(e);
+	}
+}
+
+async function removeAllNextPositions() {
+
+	console.log("Doing it");
+	try {
+		var positions = await Position.find();
+
+		positions.forEach( async function (element) {
+			var thisPosition = await Position.findByIdAndUpdate(element._id, { $set : {nextPositions: [] }});
+			console.log("Position", thisPosition);
 		})
 	} catch (e){
 		console.log(e);

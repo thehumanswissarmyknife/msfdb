@@ -1,4 +1,4 @@
-const myURL = "http://165.227.162.247:3000/";
+const myURL = "http://165.227.162.247:8080/";
 
 $body = $("body");
 
@@ -20,7 +20,7 @@ $.getJSON(myURL + "positions", function(data) {
       $("#" + thisId).append("<div class='position-title' id='" + thisId + "-title-box'></div>");
       $("#" + thisId+ "-title-box").html("<a href='#'>" + toTitleCase(element.title)+ "</a>" );
 
-      $("#accordion-positions ul").append("<li class='draggable ui-draggable ui-draggable-handle position' >"+toTitleCase(element.title)+"</li>");
+      $("#accordion-positions ul").append("<li class='draggable ui-draggable ui-draggable-handle position' id='"+thisId+"'>"+toTitleCase(element.title)+"</li>");
     })
 
     $( function() {
@@ -84,15 +84,26 @@ $.getJSON(myURL + "learnings", function(data) {
 $( document ).ajaxStop(function() {
   $( ".position-box" ).click(function() {
     var id = $(this).attr("id");
-    
+
+    updateDetails(id);    
     //load all data for this position
-    $.getJSON(myURL + "full-position/"+id, function(data) {
-      console.log("id", id);
-      $("#position-details").children().remove();
-      fillPositionDetails(data);
-    });
+    // $.getJSON(myURL + "full-position/"+id, function(data) {
+    //   console.log("id", id);
+    //   $("#position-details").children().remove();
+    //   fillPositionDetails(data);
+    // });
   });
 });
+
+function updateDetails(id) {
+  
+  //load all data for this position
+  $.getJSON(myURL + "full-position/"+id, function(data) {
+    console.log("id", id);
+    $("#position-details").children().remove();
+    fillPositionDetails(data);
+  });
+}
 
 
 async function fillPositionDetails (pos) {
@@ -111,7 +122,8 @@ async function fillPositionDetails (pos) {
   $("#position-details").append("<div id='pos-det-req'><h3>Requirements:</h3></div>");
   $("#position-details").append("<div id='pos-det-learn'><h3>Learnings:</h3></div>");
     $("#position-details").append("<div id='pos-det-know'><h3>Knowledge:</h3></div>");
-  $("#position-details").append("<div id='pos-det-nextPos'><h3>Next positions:</h3></div>");
+  $("#position-details").append("<div class='myDropzone-position' id='pos-det-nextPos-"+id+"'><h3>Next positions:</h3></div>");
+  // $("#position-details").append("<div id='pos-det-nextPos'><h3>Next positions:</h3></div>");
   $("#position-details").append("<div id='pos-det-skillcomps'></div>");
   $("#pos-det-skillcomps").append("<div class='pos-det-skills myDropzone-skill' id='pos-det-skills'><h3>Technical Skills:</h3><div id='pos-det-skills-accordion'></div></div>");
   $("#pos-det-skillcomps").append("<div class='pos-det-comps myDropzone-skill' id='pos-det-comps'><h3>Competencies:</h3><div id='pos-det-comps-accordion'></div></div>");
@@ -149,7 +161,8 @@ async function fillPositionDetails (pos) {
 
   if(position.learnings.length > 0) {
     position.learnings.forEach( function(element) {
-      $("#pos-det-learn-"+id).append("<div class='pos-det-learn-item'>Taking part in the "+element.learning+" "+element.timing+" this position is "+ element.mandatory+"</div>");
+      // $("#pos-det-learn-"+id).append("<div class='pos-det-learn-item'>Taking part in the "+element.learning+" "+element.timing+" this position is "+ element.mandatory+"</div>");
+      $("#pos-det-learn-"+id).append("<div class='pos-det-learn-item'>"+element.learning+"</div>");
     })
 
   } else {
@@ -163,123 +176,120 @@ async function fillPositionDetails (pos) {
   //
   // ################ create div for nextpositions
   //
-  $("#pos-det-nextPos").append("<div id='pos-det-nextPos-accordion' class='myDropzone-position'></div>");
-
-  // if(position.nextPositions.length > 0) {
-
-  //   // cycling through all next positions
-  //   for(var  i = 0; i < position.nextPositions.length; i++){
-
-  //     var thisNextPosition = position.nextPositions[i];
-
-  //     // create the div for the next position
-  //     $("#pos-det-nextPos-accordion").append("<h3>"+toTitleCase(thisNextPosition.title)+"</h3><div id='pos-det-nextPos-accordion-"+thisNextPosition._id+"'></div>");
-
-  //     // calculate the skilldelta
-  //     var skillDelta = await calculateSkillDelta (position, thisNextPosition._id);
-
-  //     var skillDelta = new Promise(async function(resolve, reject) {
-        
-  //       return await calculateSkillDelta (position, thisNextPosition._id);
-
-  //       if (skillDelta!="") {
-  //         resolve("Stuff worked!");
-  //       }
-  //       else {
-  //         reject(Error("It broke"));
-  //       }
-  //     });
-
-  //     skillDelta.then( function (skillDelta) {
-  //       console.log("awaited skilldelta",skillDelta )
-  //     }, function (err) {
-  //       console.log(err)
-  //     })
-      
-
-  //     // when you have the skillDelta
-      
-  //       var sk = skillDelta;
-
-  //       // // cycle through all elements of the skilldelta
-  //       // for (var j = 0; j < sk.length; j++) {
-  //       //   var thisSkillDelta = sk[j];
-  //       //   console.log("SK", thisSkillDelta)
-
-  //       //   // create the div for the skillDelta
-  //       //   $("#pos-det-nextPos-accordion-"+thisNextPosition._id).append("<h5>"+thisSkillDelta.name+": going from "+thisSkillDelta.from+" to: "+thisSkillDelta.to+"</h5><div id='pos-det-nextPos-accordion-"+thisSkillDelta._id+"'><ul></ul></div>");
-
-  //       //   // cycle throught the added descriptions
-  //       //   for (var k = 0; k < thisSkillDelta.adding.length; k++) {
-  //       //     var descr = thisSkillDelta.adding[k];
-  //       //     $("#pos-det-nextPos-accordion-"+thisSkillDelta._id+" ul").append("<li>"+descr.description+"</li>");
-  //       //   }
-  //       // }
-      
-  //     $( document ).ajaxStop( function() {
-  //       $("#pos-det-nextPos-accordion-"+thisNextPosition._id).accordion({
-  //         collapsible: true,
-  //         heightStyle: "content",
-  //         header: "h5",
-  //         active: false
-  //       }); 
-  //     })
-  //   }
-  //   $( document ).ajaxStop( function() {
-  //     $("#pos-det-nextPos-accordion").accordion({
-  //       collapsible: true,
-  //       heightStyle: "content",
-  //       header: "h3",
-  //       active: false
-  //     }); 
-  //   })
-  // }
+  $("#pos-det-nextPos-"+id).append("<div id='pos-det-nextPos-accordion' class='myDropzone-position'></div>");
 
   if(position.nextPositions.length > 0) {
 
-    async.each(position.nextPositions, async function (element) {
+    // cycling through all next positions
+    for(var  i = 0; i < position.nextPositions.length; i++){
 
-      $("#pos-det-nextPos-accordion").append("<h3>"+toTitleCase(element.title)+"</h3><div id='pos-det-nextPos-accordion-"+element._id+"'></div>");
+      var thisNextPosition = position.nextPositions[i];
 
-      var skillDelta = calculateSkillDelta (position, element._id);
-      skillDelta.then( async function (sk) {
-        console.log("Skilldelta that is being processed", skillDelta);
+      // create the div for the next position
+      $("#pos-det-nextPos-accordion").append("<h3>"+toTitleCase(thisNextPosition.title)+"</h3><div id='pos-det-nextPos-accordion-"+thisNextPosition._id+"'></div>");
 
-        async.each(sk, async function (ski) {
-          $("#pos-det-nextPos-accordion-"+element._id).append("<h5>"+ski.skill+": going from "+ski.from+" to: "+ski.to+"</h5><div id='pos-det-nextPos-accordion-"+ski._id+"'><ul></ul></div>");
+      // calculate the skilldelta
+      // var skillDelta = await calculateSkillDelta (position, thisNextPosition._id);
 
-          async.each( ski.adding, async function (descr) {
-            $("#pos-det-nextPos-accordion-"+ski._id+" ul").append("<li>"+descr.description+"</li>");
-          })
-        })
+      var skillDelta = new Promise(async function(resolve, reject) {
+        
+        return await calculateSkillDelta (position, thisNextPosition._id);
+
+        if (skillDelta!="") {
+          resolve("Stuff worked!");
+        }
+        else {
+          reject(Error("It broke"));
+        }
+      });
+
+      skillDelta.then( function (skillDelta) {
+        console.log("awaited skilldelta",skillDelta )
+      }, function (err) {
+        console.log(err)
       })
       
+
+      // when you have the skillDelta
+      
+        var sk = skillDelta;
+
+        // cycle through all elements of the skilldelta
+        for (var j = 0; j < sk.length; j++) {
+          var thisSkillDelta = sk[j];
+          console.log("SK", thisSkillDelta)
+
+          // create the div for the skillDelta
+          $("#pos-det-nextPos-accordion-"+thisNextPosition._id).append("<h5>"+thisSkillDelta.name+": going from "+thisSkillDelta.from+" to: "+thisSkillDelta.to+"</h5><div id='pos-det-nextPos-accordion-"+thisSkillDelta._id+"'><ul></ul></div>");
+
+          // cycle throught the added descriptions
+          for (var k = 0; k < thisSkillDelta.adding.length; k++) {
+            var descr = thisSkillDelta.adding[k];
+            $("#pos-det-nextPos-accordion-"+thisSkillDelta._id+" ul").append("<li>"+descr.description+"</li>");
+          }
+        }
+      
       $( document ).ajaxStop( function() {
-        $("#pos-det-nextPos-accordion-"+element._id).accordion({
+        $("#pos-det-nextPos-accordion-"+thisNextPosition._id).accordion({
           collapsible: true,
           heightStyle: "content",
           header: "h5",
           active: false
         }); 
       })
-
-    }, function (error) {
-      console.log(error);
+    }
+    $( document ).ajaxStop( function() {
+      $("#pos-det-nextPos-accordion").accordion({
+        collapsible: true,
+        heightStyle: "content",
+        header: "h3",
+        active: false
+      }); 
     })
+  }
 
-  $( document ).ajaxStop( function() {
-    $("#pos-det-nextPos-accordion").accordion({
-      collapsible: true,
-      heightStyle: "content",
-      header: "h3",
-      active: false
-    }); 
-  }) 
-}
+//   if(position.nextPositions.length > 0) {
 
-  // create div for learnings
-    // get all info for the learnings
-    // run through the loop and create divs for all learnings
+//     async.each(position.nextPositions, async function (element) {
+
+//       $("#pos-det-nextPos-accordion").append("<h3>"+toTitleCase(element.title)+"</h3><div id='pos-det-nextPos-accordion-"+element._id+"'></div>");
+
+//       var skillDelta = calculateSkillDelta (position, element._id);
+//       skillDelta.then( async function (sk) {
+//         console.log("Skilldelta that is being processed", skillDelta);
+
+//         async.each(sk, async function (ski) {
+//           $("#pos-det-nextPos-accordion-"+element._id).append("<h5>"+ski.skill+": going from "+ski.from+" to: "+ski.to+"</h5><div id='pos-det-nextPos-accordion-"+ski._id+"'><ul></ul></div>");
+
+//           // async.each( ski.adding, async function (descr) {
+//           //   $("#pos-det-nextPos-accordion-"+ski._id+" ul").append("<li>"+descr.description+"</li>");
+//           // })
+//         })
+//       })
+      
+//       $( document ).ajaxStop( function() {
+//         $("#pos-det-nextPos-accordion-"+element._id).accordion({
+//           collapsible: true,
+//           heightStyle: "content",
+//           header: "h5",
+//           active: false
+//         }); 
+//       })
+
+//     }, function (error) {
+//       console.log(error);
+//     })
+
+//   $( document ).ajaxStop( function() {
+//     $("#pos-det-nextPos-accordion").accordion({
+//       collapsible: true,
+//       heightStyle: "content",
+//       header: "h3",
+//       active: false
+//     }); 
+//   }) 
+// }
+
 
   // create div for technical skills
 
@@ -291,6 +301,7 @@ async function fillPositionDetails (pos) {
 
     mySkills.forEach( function (skillsData) {
       // console.log("Skillsdata", skillsData)
+      console.log("Inherited", skillsData.inherited);
 
       $("#pos-det-skills-accordion").append("<h4>"+toTitleCase(skillsData.name) +" "+skillsData.level+ "</H4><div class='pos-det-skills-accordion' id='pos-det-skills-accordion-"+skillsData._id+"'></div>");
 
@@ -310,6 +321,37 @@ async function fillPositionDetails (pos) {
           }); 
         })
       })
+
+      // if there are inherited skkills
+      // create a div, fill it and then in the end...
+      if(skillsData.inherited.length>0) {
+        $("#pos-det-skills-accordion-"+skillsData._id).append("<h6>inherited skills</h6><div class='pos-det-skills-accordion-description' id='pos-det-skills-accordion-"+skillsData._id+"-inherited'></div>");
+
+        skillsData.inherited.forEach( function (inhDescrData) {
+          $("#pos-det-skills-accordion-"+skillsData._id+"-inherited").append("<h5>"+inhDescrData.description+"</h5><div class='pos-det-skills-accordion-description' id='pos-det-skills-accordion-"+skillsData._id+"-inherited-"+inhDescrData._id+"'><ul></ul></div>");
+
+          inhDescrData.actions.forEach( function (inhActData) {
+            $("#pos-det-skills-accordion-"+skillsData._id+"-inherited-"+inhDescrData._id + " ul").append("<li>"+inhActData.action+"</li>");
+          })
+
+          $( document ).ajaxStop( function() {
+            $("#pos-det-skills-accordion-"+skillsData._id).accordion({
+              collapsible: true,
+              heightStyle: "content",
+              header: "h5",
+              active: false
+            }); 
+            $("#pos-det-skills-accordion-"+skillsData._id).accordion({
+              collapsible: true,
+              heightStyle: "content",
+              header: "h6",
+              active: false
+            }); 
+          })
+        })
+
+      }
+
     });
 
 
@@ -422,7 +464,26 @@ async function fillPositionDetails (pos) {
           "ui-droppable-hover": "ui-state-hover"
         },
         drop: function( event, ui ) {
-          console.log("Dropped something?>");
+          console.log("Dropped a new next position");
+          var nextPosition = $(ui.draggable).attr("id");
+          var thisPosition = $(this).attr("id").substring(16, 40);
+          // addLearningForm(droppedLearning, thisPosition);
+
+          console.log("Just dropped " + nextPosition + " on ", thisPosition);
+
+          $.ajax({
+            url: '/position/'.concat(thisPosition),
+            dataType: 'json',
+            type: 'patch',
+            contentType: 'application/json',
+            data: JSON.stringify( {"nextPositions": nextPosition} ),
+            success: function( data, textStatus, jQxhr ){
+              updateDetails(thisPosition)
+            },
+            error: function( jqXhr, textStatus, errorThrown ){
+                console.log( errorThrown );
+            }
+          });
         }
       });
 

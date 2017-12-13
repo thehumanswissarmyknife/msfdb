@@ -17,7 +17,7 @@ var {Learning} = require('./models/learning')
 var async = require('async');
 var flowControl = require('./customlib/flowControl');
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8080;
 const mongoCon = process.env.MONGODB_URI || 'mongodb://165.227.162.247:30001/msfdb';
 
 // connection to the db
@@ -747,17 +747,42 @@ async function getFullSkillComp (id) {
 
 	try {
 		var thisSkillComp = await SkillComp.findById(id);
+		var thisName = thisSkillComp.name;
+		var thisLevel = thisSkillComp.level;
+		console.log("----------------- this skillcomp", thisSkillComp, thisName, thisLevel);
+
+
+		var inheritedSkills = await SkillComp.find({$and:[{name:thisName}, {level: {$lt: thisLevel}}]});
+		// var inheritedSkills = await SkillComp.find({$and: [{name: thisSkill.name}]});
+		console.log(" ++++++++++++++++++++ inheritedSkills", inheritedSkills);
 
 		var descriptions = [];
+		var inheritedDescriptions = [];
 		var descriptionArray = thisSkillComp.descriptions;
+		var inheritedDescriptionArray = [];
+
+		for(var i = 0; i < inheritedSkills.length; i++) {
+			for(var j = 0; j < inheritedSkills[i].descriptions.length; j++) {
+				inheritedDescriptionArray.push(inheritedSkills[i].descriptions[j]);
+			}
+		}
+
+		console.log("###################### inheritedDescriptionArray", inheritedDescriptionArray);
 
 		for(var i = 0; i < descriptionArray.length; i++) {
-
 			descriptions.push(await getFullDescription(descriptionArray[i]));
-			console.log("424: descriptions", descriptions);
+			// console.log("424: descriptions", descriptions);
 		}
+
+		for(var j = 0; j < inheritedDescriptionArray.length; j++) {
+			inheritedDescriptions.push(await getFullDescription(inheritedDescriptionArray[j]));
+			
+		}
+		console.log("################ 424: descriptions", inheritedDescriptions);
+
+
 		console.log("returning the full skillcomp", thisSkillComp._id);
-		return {_id: thisSkillComp._id, name: thisSkillComp.name, level: thisSkillComp.level, descriptions: descriptions};
+		return {_id: thisSkillComp._id, name: thisSkillComp.name, level: thisSkillComp.level, descriptions: descriptions, inherited: inheritedDescriptions};
 
 	} catch (e) {
 		throw e;
