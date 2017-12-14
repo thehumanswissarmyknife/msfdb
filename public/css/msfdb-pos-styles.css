@@ -110,11 +110,14 @@ a:active {
 .pos-det-skills-accordion-description {
     padding-left: 5px;
     margin-left: 5px;
+    margin-right: 10px;
     font-size: 12px;
 }
 
 .pos-det-skills-accordion {
     padding-left: 5px;
+    padding-right: 5px;
+    margin-right: 10px;
     font-size: 14px;
 }
 

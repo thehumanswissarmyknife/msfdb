@@ -115,7 +115,7 @@ async function fillPositionDetails (pos) {
   $("#position-details").empty();
 
   $("#position-details").append("<div class='pos-detail-header'><h2>"+toTitleCase(position.title)+"</h2></div>");
-  $("#position-details").append("<div class='pos-detail-irffg'>"+toTitleCase(position.irffg)+"</div>");
+  $("#position-details").append("<div class='pos-detail-irffg'>"+toTitleCase(position.irffg)+" - Level "+ position.level + "</div>");
   $("#position-details").append("<div></div>");
 
   // create div for requirements
@@ -184,6 +184,7 @@ async function fillPositionDetails (pos) {
     for(var  i = 0; i < position.nextPositions.length; i++){
 
       var thisNextPosition = position.nextPositions[i];
+      console.log("thisNextPosition", thisNextPosition);
 
       // create the div for the next position
       $("#pos-det-nextPos-accordion").append("<h3>"+toTitleCase(thisNextPosition.title)+"</h3><div id='pos-det-nextPos-accordion-"+thisNextPosition._id+"'></div>");
@@ -325,7 +326,7 @@ async function fillPositionDetails (pos) {
       // if there are inherited skkills
       // create a div, fill it and then in the end...
       if(skillsData.inherited.length>0) {
-        $("#pos-det-skills-accordion-"+skillsData._id).append("<h6>inherited skills</h6><div class='pos-det-skills-accordion-description' id='pos-det-skills-accordion-"+skillsData._id+"-inherited'></div>");
+        $("#pos-det-skills-accordion-"+skillsData._id).append(" ---- inherited skills ---- <div class='pos-det-skills-accordion-description' id='pos-det-skills-accordion-"+skillsData._id+"-inherited'></div>");
 
         skillsData.inherited.forEach( function (inhDescrData) {
           $("#pos-det-skills-accordion-"+skillsData._id+"-inherited").append("<h5>"+inhDescrData.description+"</h5><div class='pos-det-skills-accordion-description' id='pos-det-skills-accordion-"+skillsData._id+"-inherited-"+inhDescrData._id+"'><ul></ul></div>");
@@ -366,18 +367,18 @@ async function fillPositionDetails (pos) {
     myComps.forEach( function (compsData) {
       // console.log("compsData", compsData)
 
-      $("#pos-det-comps-accordion").append("<h4>"+toTitleCase(compsData.name) +" "+compsData.level+ "</H4><div class='pos-det-comps-accordion' id='pos-det-comps-accordion-"+compsData._id+"'></div>");
+      $("#pos-det-comps-accordion").append("<h4>"+toTitleCase(compsData.name) +" "+compsData.level+ "</H4><div class='pos-det-comps-accordion' id='pos-det-comps-accordion-"+compsData._id+"'><ul/></div>");
 
       compsData.descriptions.forEach( function (descrData) {
-        $("#pos-det-comps-accordion-"+compsData._id).append("<h5>"+descrData.description+"</h5><div class='pos-det-comps-accordion-description' id='pos-det-comps-accordion-"+compsData._id+"-"+descrData._id+"'><ul></ul></div>");
+        $("#pos-det-comps-accordion-"+compsData._id+ " ul").append("<li>"+descrData.description+"</li>");
 
-        $( document ).ajaxStop( function() {
-          $("#pos-det-comps-accordion-"+compsData._id).accordion({
-            collapsible: true,
-            heightStyle: "content",
-            header: "h5"   
-          }); 
-        })
+        // $( document ).ajaxStop( function() {
+        //   $("#pos-det-comps-accordion-"+compsData._id).accordion({
+        //     collapsible: true,
+        //     heightStyle: "content",
+        //     header: "h5"   
+        //   }); 
+        // })
       })
     });
 }
@@ -426,6 +427,7 @@ async function fillPositionDetails (pos) {
             contentType: 'application/json',
             data: JSON.stringify( {learnings: { "learning": droppedLearning, "mandatory": "mandatory", "timing": "before"}} ),
             success: function( data, textStatus, jQxhr ){
+              updateDetails(thisPosition);
             },
             error: function( jqXhr, textStatus, errorThrown ){
                 console.log( errorThrown );

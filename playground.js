@@ -16,16 +16,20 @@ var {Learning} = require('./models/learning');
 
 if(typeof require !== 'undefined') XLSX = require('xlsx');
 
-var workbook = XLSX.readFile(__dirname + '/imports/Workbook-final.xlsx');
+var workbook = XLSX.readFile(__dirname + '/imports/Workbook-final2.xlsx');
 var first_sheet_name = workbook.SheetNames[0];
 var second_sheet_name = workbook.SheetNames[1];
+var third_sheet_name = workbook.SheetNames[2];
+
 var address_of_cell = 'A1';
 var descriptionSheet = workbook.Sheets[first_sheet_name];
 var actionSheet = workbook.Sheets[second_sheet_name];
+var compSheet = workbook.Sheets[third_sheet_name];
 
 
 var descriptionsForDb = XLSX.utils.sheet_to_json(descriptionSheet);
 var actionsForDb = XLSX.utils.sheet_to_json(actionSheet);
+var compsForDb = XLSX.utils.sheet_to_json(compSheet);
 
 //for the first row of the sheet: get all cells into an array, then camelCase all values and write them back
 const port = process.env.PORT || 3000;
@@ -39,6 +43,7 @@ mongoose.Promise = global.Promise;
 // updateDescriptions();
 // updateActions() ;
 // removeAllNextPositions();
+// updateComps();
 
 
 
@@ -64,6 +69,42 @@ async function updateDescriptions () {
 			// console.log("Description", description);
 			// console.log("Element", element);
 			var temp = await SkillComp.find({$and: [{name: element.skill}, {level: element.level}]}).limit(1);
+
+			// console.log("skill:",temp, temp[0]._id);
+
+			const thisSkillcomp = await SkillComp.findByIdAndUpdate(temp[0]._id, {$addToSet: {descriptions: description._id}});
+			// console.log("Skill", thisSkillcomp);
+		} catch (e){
+			console.log(e);
+		}	
+	})
+}
+
+async function updateComps () {
+	console.log("Length", compsForDb.length);
+	console.log("comps", compsForDb);
+	compsForDb.forEach( async function (element) {
+		// console.log("Counter:", i, element);
+		// i++;
+
+		try {
+
+			const body = _.pick(element, ['description']);
+			// console.log("Description:", body);
+			// const level = _.pick(element, ['level']);
+			// const name = _.pick(element, ['skill']);
+			// console.log("Body", body);
+			// console.log("level", level);
+			// console.log("name", name);
+			var description = new Description(body);
+			description = await description.save();
+			// console.log("Description", description);
+			// console.log("Element", element);
+			var temp = await SkillComp.find({$and: [{name: element.comp}, {level: element.level}]}).limit(1);
+			
+			// if(temp.length<1) {
+			// 	console.log("Not found", element.comp, element.level);
+			// }
 			// console.log("skill:",temp, temp[0]._id);
 
 			const thisSkillcomp = await SkillComp.findByIdAndUpdate(temp[0]._id, {$addToSet: {descriptions: description._id}});
