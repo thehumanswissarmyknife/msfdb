@@ -17,7 +17,7 @@ var {Learning} = require('./models/learning')
 var async = require('async');
 var flowControl = require('./customlib/flowControl');
 
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 3000;
 const mongoCon = process.env.MONGODB_URI || 'mongodb://165.227.162.247:30001/msfdb';
 
 // connection to the db

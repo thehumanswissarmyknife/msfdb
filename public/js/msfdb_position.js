@@ -1,4 +1,4 @@
-const myURL = "http://165.227.162.247:8080/";
+const myURL = "http://165.227.162.247:3000/";
 
 $body = $("body");
 
