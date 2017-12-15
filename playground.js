@@ -41,7 +41,7 @@ mongoose.Promise = global.Promise;
 
 // removeAllDescriptions();
 // updateDescriptions();
-// updateActions() ;
+updateActions() ;
 // removeAllNextPositions();
 // updateComps();
 
@@ -70,7 +70,7 @@ async function updateDescriptions () {
 			// console.log("Element", element);
 			var temp = await SkillComp.find({$and: [{name: element.skill}, {level: element.level}]}).limit(1);
 
-			// console.log("skill:",temp, temp[0]._id);
+			console.log("skill:",temp, temp[0]._id);
 
 			const thisSkillcomp = await SkillComp.findByIdAndUpdate(temp[0]._id, {$addToSet: {descriptions: description._id}});
 			// console.log("Skill", thisSkillcomp);

@@ -306,7 +306,7 @@ async function fillPositionDetails (pos) {
         $("#pos-det-skills-accordion-"+skillsData._id).append("<h5>"+descrData.description+"</h5><div class='pos-det-skills-accordion-description' id='pos-det-skills-accordion-"+skillsData._id+"-"+descrData._id+"'><ul></ul></div>");
 
         descrData.actions.forEach( function (actData) {
-          $("#pos-det-skills-accordion-"+skillsData._id+"-"+descrData._id + " ul").append("<li>"+actData.action+"</li>");
+          $("#pos-det-skills-accordion-"+skillsData._id+"-"+descrData._id + " ul").append("<li class='draggable action' id='"+descrData._id+"-"+actData._id+"-"+skillsData._id+"'>"+actData.action+"</li>");
         })
 
         $( document ).ajaxStop( function() {
@@ -316,6 +316,7 @@ async function fillPositionDetails (pos) {
             header: "h5",
             active: false
           }); 
+          $( ".draggable" ).draggable({ revert: true, helper: "clone" });
         })
       })
 
@@ -442,6 +443,46 @@ async function fillPositionDetails (pos) {
         },
         drop: function( event, ui ) {
           console.log("Dropped something?>");
+          var fullID = $(ui.draggable).attr("id");
+          console.log("fullID", fullID);
+          var descriptionID = fullID.substring(0,24);
+          var actionID = fullID.substring(25,49);
+          var skillCompID = fullID.substring(50, 74)
+          console.log("SkillCompId",skillCompID);
+
+          var action = "";
+          var description = "";
+          var affectedPositions = [];
+
+          $.getJSON('/description/'+descriptionID, function (thisDescription) {
+            
+            description = thisDescription;
+            console.log("Description inner", description);
+
+            $.getJSON('/action/'+actionID, function (thisAction) {
+
+              action = thisAction;
+              console.log("action inner", action);
+
+              $.getJSON('/positionsforskill/'+skillCompID, function (positions) {
+                var positions = positions.positions;
+                for (var i = 0; i < positions.length; i++) {
+                  console.log("Positions i", positions[i])
+                  affectedPositions.push(positions[i].title);
+                }
+                console.log("affectedPositions", affectedPositions)
+                alertBoxActionRemoval(action.action, description.description, affectedPositions) ;
+              })
+              
+            })
+          })
+
+          
+
+          console.log("action", action);
+          console.log("Description", description);
+
+          
         }
       });
 
@@ -745,3 +786,16 @@ function addLearningForm(learningId, position) {
 //     <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
 //   </div>
 // </form>
+
+
+function alertBoxActionRemoval(action, description, positions) {
+    if (confirm("you are about to remove '"+action.action+"' from '"+description.description+"'. This will affect these positions: " + positions) == true) {
+        console.log("remove that action");
+        $.getJSON('/removeactionfromdescription/' +action._id + '/' + description._id, function (description) {
+          console.log ("Description updated:", description);
+        })
+
+    } else {
+        console.log("rather not");
+    }
+}

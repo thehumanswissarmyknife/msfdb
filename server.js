@@ -134,6 +134,23 @@ app.get('/full-position/:id', async (req, res) => {
 	// }
 
 })
+
+app.get('/positionsforskill/:id', async (req, res) => {
+	var id = req.params.id;
+	if(!ObjectID.isValid(id)){
+		return res.status(404).send({status: 'not created', error: 'bad object ID'});
+	}
+	try {
+		// console.log(Position.find());
+		var positions = await Position.find({skills: id});
+
+		res.status(200).send({positions});
+	} catch (e) {
+		res.status(404).send(e);
+	}
+});
+
+
 // SKILLCOMPS
 app.post('/skillcomps', async (req, res) => {
 	try {
@@ -292,6 +309,22 @@ app.patch('/description/:id', async (req, res) => {
 	}
 });
 
+app.get('/removeactionfromdescription/:actionid/:descriptionid', async (req, res) => {
+	var actionid = req.params.actionid;
+	var descriptionid = req.params.descriptionid;
+	if (!ObjectID.isValid(actionid) || !ObjectID.isValid(descriptionid)  ) {
+		return res.status(404).send("Bad description ID");
+	} 
+
+	try {
+		console.log("ActionID", actionid, descriptionid)
+		thisDescription = await Description.findByIdAndUpdate(descriptionid, {$pull: {'actions': actionid }}, {'new': true})
+		res.status(200).send(thisDescription);
+	} catch (e) {
+		res.status(404).send(e);
+	}
+});
+
 app.get('/full-descriptions', async (req, res) => {
 	try {
 		var descriptionArray = await Description.find();
@@ -352,7 +385,7 @@ app.post('/actions', async (req, res) => {
 	}
 });
 
-app.patch('/actions/:id', async (req, res) => {
+app.patch('/action/:id', async (req, res) => {
 	var id = req.params.id;
 	if (!ObjectID.isValid(req.params.id)) {
 		return res.status(404).send({});
@@ -399,7 +432,7 @@ app.get('/full-actions', async (req, res) => {
 	
 });
 
-app.get('/full-actions/:id', async (req, res) => {
+app.get('/full-action/:id', async (req, res) => {
 	var id = req.params.id;
 	if(!ObjectID.isValid(id)){
 		return res.status(404).send('Bad action ID');
@@ -417,7 +450,7 @@ app.get('/full-actions/:id', async (req, res) => {
 	
 });
 
-app.get('/actions/:id', async (req, res) => {
+app.get('/action/:id', async (req, res) => {
 	var thisAction = req.params.id;
 
 	if(!ObjectID.isValid(thisAction)){
@@ -841,4 +874,3 @@ async function asyncForEach(array, callback) {
     await callback(array[index], index, array)
   }
 }
-
