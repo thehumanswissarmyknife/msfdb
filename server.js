@@ -753,12 +753,13 @@ async function getFullSkillComp (id) {
 
 
 		var inheritedSkills = await SkillComp.find({$and:[{name:thisName}, {level: {$lt: thisLevel}}]});
-		// var inheritedSkills = await SkillComp.find({$and: [{name: thisSkill.name}]});
-		console.log(" ++++++++++++++++++++ inheritedSkills", inheritedSkills);
+		// var inheritedSkills = [];
+		// console.log(" ++++++++++++++++++++ inheritedSkills", inheritedSkills);
 
 		var descriptions = [];
 		var inheritedDescriptions = [];
 		var descriptionArray = thisSkillComp.descriptions;
+		console.log("+-+-+-+-+-+-+-+-+-+-+-+ö+ descriptionArray", descriptionArray)
 		var inheritedDescriptionArray = [];
 
 		for(var i = 0; i < inheritedSkills.length; i++) {
@@ -767,7 +768,7 @@ async function getFullSkillComp (id) {
 			}
 		}
 
-		console.log("###################### inheritedDescriptionArray", inheritedDescriptionArray);
+		// console.log("###################### inheritedDescriptionArray", inheritedDescriptionArray);
 
 		for(var i = 0; i < descriptionArray.length; i++) {
 			descriptions.push(await getFullDescription(descriptionArray[i]));
@@ -778,7 +779,7 @@ async function getFullSkillComp (id) {
 			inheritedDescriptions.push(await getFullDescription(inheritedDescriptionArray[j]));
 			
 		}
-		console.log("################ 424: descriptions", inheritedDescriptions);
+		// console.log("################ 424: descriptions", inheritedDescriptions);
 
 
 		console.log("returning the full skillcomp", thisSkillComp._id);
@@ -801,6 +802,8 @@ async function getFullDescription (id) {
 
 	for(var i = 0; i < actionArray.length; i++){
 		actions.push(await getFullAction(actionArray[i]));
+		var cursor = actions.length;
+		console.log("Pushed another one", actions)
 	};
 
 	return {_id: thisDescription._id, description: thisDescription.description, actions: actions};

@@ -41,21 +41,22 @@ $.getJSON(myURL + "actions", function(data) {
       } );
 });
 
-// get all knowledges  and fill them in the toolbar
-$.getJSON(myURL + "knowledge", function(data) {  
-  var knowledges = data.knowledges;
+// // get all knowledges  and fill them in the toolbar
+// $.getJSON(myURL + "knowledge", function(data) {  
+//   var knowledges = data.knowledges;
 
-  knowledges.forEach( function(element) {
-    $("#accordion-knowledges ul").append("<li class='draggable ui-draggable ui-draggable-handle knowledge' id='"+element._id+"'>"+element.knowledge+"</li>");
-  })
-  $( function() {
-        $( ".draggable" ).draggable({ revert: true, helper: "clone" });
-      } );
-});
+//   knowledges.forEach( function(element) {
+//     $("#accordion-knowledges ul").append("<li class='draggable ui-draggable ui-draggable-handle knowledge' id='"+element._id+"'>"+element.knowledge+"</li>");
+//   })
+//   $( function() {
+//         $( ".draggable" ).draggable({ revert: true, helper: "clone" });
+//       } );
+// });
 
 // get all skillcomps and fill them in the toolbar
 $.getJSON(myURL + "skillcomps", function(data) {
   var skillcomps = data.skillComps;
+  skillcomps.sort(sortSkillComps);
 
   skillcomps.forEach( function(element) {
     if(element.level>0) {
@@ -85,13 +86,8 @@ $( document ).ajaxStop(function() {
   $( ".position-box" ).click(function() {
     var id = $(this).attr("id");
 
+    // show the details for this position
     updateDetails(id);    
-    //load all data for this position
-    // $.getJSON(myURL + "full-position/"+id, function(data) {
-    //   console.log("id", id);
-    //   $("#position-details").children().remove();
-    //   fillPositionDetails(data);
-    // });
   });
 });
 
@@ -560,6 +556,22 @@ function compareLevels(a,b) {
   if (a.level < b.level)
     return 1;
   return 0;
+}
+
+function sortSkillComps(a, b) {
+  if(a.name == b.name && a.level > b.level) {
+    return 1;
+  }
+  if(a.name == b.name && a.level < b.level) {
+    return -1;
+  }
+    if(a.name > b.name) {
+    return 1;
+  }
+  if(a.name < b.name) {
+    return -1;
+  }
+
 }
 
 function toTitleCase(str) {
