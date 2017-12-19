@@ -1,10 +1,10 @@
-const myURL = "http://165.227.162.247:8080/";
+var myURL = "http://165.227.162.247:8080/";
 
 $body = $("body");
 
 $(document).on({
-    ajaxStart: function() { $body.addClass("loading");    },
-     ajaxStop: function() { $body.removeClass("loading"); }    
+    ajaxStart: function() { $body.addClass("loading"); },
+     ajaxStop: function() { $body.removeClass("loading"); }
 });
 
 
@@ -21,7 +21,7 @@ $.getJSON(myURL + "positions", function(data) {
       $("#" + thisId+ "-title-box").html("<a href='#'>" + toTitleCase(element.title)+ "</a>" );
 
       $("#accordion-positions ul").append("<li class='draggable ui-draggable ui-draggable-handle position' id='"+thisId+"'>"+toTitleCase(element.title)+"</li>");
-    })
+    });
 
     $( function() {
       $( ".draggable" ).draggable({ revert: true, helper: "clone" });
@@ -30,12 +30,12 @@ $.getJSON(myURL + "positions", function(data) {
 
 // get all actions and fill them in the toolbar
 $.getJSON(myURL + "actions", function(data) {
-  
+
   var actions = data.actions;
 
   actions.forEach(function(element) {
     $("#accordion-actions ul").append("<li class='draggable ui-draggable ui-draggable-handle action' id='"+element._id+"'>"+element.action+"</li>");
-  })
+  });
   $( function() {
         $( ".draggable" ).draggable({ revert: true, helper: "clone" });
       } );
@@ -62,7 +62,7 @@ $.getJSON(myURL + "skillcomps", function(data) {
     if(element.level>0) {
       $("#accordion-skillcomps ul").append("<li class='draggable ui-draggable ui-draggable-handle skillcomp' id='"+element._id+"'>"+toTitleCase(element.name)+" "+element.level+"</li>");
     }
-  })
+  });
 
   $( function() {
         $( ".draggable" ).draggable({ revert: true, helper: "clone" });
@@ -70,11 +70,11 @@ $.getJSON(myURL + "skillcomps", function(data) {
 });
 
 // get all learnings  and fill them in the toolbar
-$.getJSON(myURL + "learnings", function(data) {  
+$.getJSON(myURL + "learnings", function(data) {
   var learnings = data.learnings;
   learnings.forEach( function(element) {
     $("#accordion-learnings ul").append("<li class='draggable ui-draggable ui-draggable-handle learning' id='"+element._id+"'>"+element.name+"</li>");
-  })
+  });
 
   $( function() {
         $( ".draggable" ).draggable({ revert: true, helper: "clone" });
@@ -87,7 +87,7 @@ $( document ).ajaxStop(function() {
     var id = $(this).attr("id");
 
     // show the details for this position
-    updateDetails(id);    
+    updateDetails(id);
   });
 });
 
@@ -102,7 +102,7 @@ function updateDetails(id) {
 }
 
 
-async function fillPositionDetails (pos) {
+function fillPositionDetails (pos) {
   var position = pos.position;
 
   console.log("POSITION INPUT", position);
@@ -124,8 +124,6 @@ async function fillPositionDetails (pos) {
   $("#pos-det-skillcomps").append("<div class='pos-det-skills myDropzone-skill' id='pos-det-skills'><h3>Technical Skills:</h3><div id='pos-det-skills-accordion'></div></div>");
   $("#pos-det-skillcomps").append("<div class='pos-det-comps myDropzone-skill' id='pos-det-comps'><h3>Competencies:</h3><div id='pos-det-comps-accordion'></div></div>");
 
-  
-
   $("#pos-det-req").append("<div class='pos-det-req myDropzone-requirement' id='pos-det-req-"+id+"'></div>");
 
   //
@@ -134,7 +132,7 @@ async function fillPositionDetails (pos) {
   if(position.requirements.length>0) {
     console.log("position.requirements.length", position.requirements.length);
 
-    for(var i = 0; i < position.requirements.length; i++) {
+    for (var i = 0; i < position.requirements.length; i++) {
       var thisReq = position.requirements[i];
       $("#pos-det-req-"+id).append("<div id='pos-det-req-months-mission-'"+thisReq.months + thisReq.missions +">"+thisReq.months+" months or/and "+thisReq.missions+" missions in these positions: <ul></ul></div>");
 
@@ -159,7 +157,7 @@ async function fillPositionDetails (pos) {
     position.learnings.forEach( function(element) {
       // $("#pos-det-learn-"+id).append("<div class='pos-det-learn-item'>Taking part in the "+element.learning+" "+element.timing+" this position is "+ element.mandatory+"</div>");
       $("#pos-det-learn-"+id).append("<div class='pos-det-learn-item'>"+element.learning+"</div>");
-    })
+    });
 
   } else {
     $("#pos-det-learn-"+id).append("<div class='pos-det-learn-item'>No training necessary.</div>");
@@ -188,24 +186,23 @@ async function fillPositionDetails (pos) {
       // calculate the skilldelta
       // var skillDelta = await calculateSkillDelta (position, thisNextPosition._id);
 
-      var skillDelta = new Promise(async function(resolve, reject) {
+      var skillDelta = new Promise(function(resolve, reject) {
         
-        return await calculateSkillDelta (position, thisNextPosition._id);
+        return calculateSkillDelta (position, thisNextPosition._id);
 
-        if (skillDelta!="") {
-          resolve("Stuff worked!");
-        }
-        else {
-          reject(Error("It broke"));
-        }
+        // if (skillDelta!="") {
+        //   resolve("Stuff worked!");
+        // }
+        // else {
+        //   reject(Error("It broke"));
+        // }
       });
 
       skillDelta.then( function (skillDelta) {
-        console.log("awaited skilldelta",skillDelta )
+        console.log("awaited skilldelta", skillDelta );
       }, function (err) {
-        console.log(err)
-      })
-      
+        console.log(err);
+      });
 
       // when you have the skillDelta
       
@@ -214,7 +211,7 @@ async function fillPositionDetails (pos) {
         // cycle through all elements of the skilldelta
         for (var j = 0; j < sk.length; j++) {
           var thisSkillDelta = sk[j];
-          console.log("SK", thisSkillDelta)
+          console.log("SK", thisSkillDelta);
 
           // create the div for the skillDelta
           $("#pos-det-nextPos-accordion-"+thisNextPosition._id).append("<h5>"+thisSkillDelta.name+": going from "+thisSkillDelta.from+" to: "+thisSkillDelta.to+"</h5><div id='pos-det-nextPos-accordion-"+thisSkillDelta._id+"'><ul></ul></div>");
@@ -232,8 +229,8 @@ async function fillPositionDetails (pos) {
           heightStyle: "content",
           header: "h5",
           active: false
-        }); 
-      })
+        });
+      });
     }
     $( document ).ajaxStop( function() {
       $("#pos-det-nextPos-accordion").accordion({
@@ -241,8 +238,8 @@ async function fillPositionDetails (pos) {
         heightStyle: "content",
         header: "h3",
         active: false
-      }); 
-    })
+      });
+    });
   }
 
 //   if(position.nextPositions.length > 0) {
@@ -264,15 +261,14 @@ async function fillPositionDetails (pos) {
 //         })
 //       })
       
-//       $( document ).ajaxStop( function() {
-//         $("#pos-det-nextPos-accordion-"+element._id).accordion({
+//       $( document ).ajaxStop( function() 
+        // $("#pos-det-nextPos-accordion-"+element._id).accordion({
 //           collapsible: true,
 //           heightStyle: "content",
 //           header: "h5",
 //           active: false
 //         }); 
 //       })
-
 //     }, function (error) {
 //       console.log(error);
 //     })
@@ -286,8 +282,6 @@ async function fillPositionDetails (pos) {
 //     }); 
 //   }) 
 // }
-
-
   // create div for technical skills
 
   if(position.skills.length >0 ) {
@@ -307,7 +301,7 @@ async function fillPositionDetails (pos) {
 
         descrData.actions.forEach( function (actData) {
           $("#pos-det-skills-accordion-"+skillsData._id+"-"+descrData._id + " ul").append("<li class='draggable action' id='"+descrData._id+"-"+actData._id+"-"+skillsData._id+"'>"+actData.action+"</li>");
-        })
+        });
 
         $( document ).ajaxStop( function() {
           $("#pos-det-skills-accordion-"+skillsData._id).accordion({
@@ -315,10 +309,10 @@ async function fillPositionDetails (pos) {
             heightStyle: "content",
             header: "h5",
             active: false
-          }); 
+          });
           $( ".draggable" ).draggable({ revert: true, helper: "clone" });
-        })
-      })
+        });
+      });
 
       // if there are inherited skkills
       // create a div, fill it and then in the end...
@@ -330,7 +324,7 @@ async function fillPositionDetails (pos) {
 
           inhDescrData.actions.forEach( function (inhActData) {
             $("#pos-det-skills-accordion-"+skillsData._id+"-inherited-"+inhDescrData._id + " ul").append("<li>"+inhActData.action+"</li>");
-          })
+          });
 
           $( document ).ajaxStop( function() {
             $("#pos-det-skills-accordion-"+skillsData._id).accordion({
@@ -338,15 +332,15 @@ async function fillPositionDetails (pos) {
               heightStyle: "content",
               header: "h5",
               active: false
-            }); 
+            });
             $("#pos-det-skills-accordion-"+skillsData._id).accordion({
               collapsible: true,
               heightStyle: "content",
               header: "h6",
               active: false
-            }); 
-          })
-        })
+            });
+          });
+        });
 
       }
 
@@ -376,7 +370,7 @@ async function fillPositionDetails (pos) {
         //     header: "h5"   
         //   }); 
         // })
-      })
+      });
     });
 }
 
@@ -384,16 +378,16 @@ async function fillPositionDetails (pos) {
     $("#pos-det-skills-accordion").accordion({
       collapsible: true,
       heightStyle: "content",
-      active: false   
+      active: false 
     }); 
 
     $("#pos-det-comps-accordion").accordion({
       collapsible: true,
       heightStyle: "content",
       active: false   
-    }); 
+    });
 
-  })
+  });
   
 
   // create div for competencies
@@ -418,10 +412,10 @@ async function fillPositionDetails (pos) {
 
           console.log("Just dropped " + droppedLearning + " on ", thisPosition);
           $.ajax({
-            url: '/position/'.concat(thisPosition),
-            dataType: 'json',
-            type: 'patch',
-            contentType: 'application/json',
+            url: "/position/".concat(thisPosition),
+            dataType: "json",
+            type: "patch",
+            contentType: "application/json",
             data: JSON.stringify( {learnings: { "learning": droppedLearning, "mandatory": "mandatory", "timing": "before"}} ),
             success: function( data, textStatus, jQxhr ){
               updateDetails(thisPosition);
@@ -447,7 +441,7 @@ async function fillPositionDetails (pos) {
           console.log("fullID", fullID);
           var descriptionID = fullID.substring(0,24);
           var actionID = fullID.substring(25,49);
-          var skillCompID = fullID.substring(50, 74)
+          var skillCompID = fullID.substring(50, 74);
           console.log("SkillCompId",skillCompID);
 
           var action = "";
@@ -464,18 +458,18 @@ async function fillPositionDetails (pos) {
               action = thisAction;
               console.log("action inner", action);
 
-              $.getJSON('/positionsforskill/'+skillCompID, function (positions) {
-                var positions = positions.positions;
+              $.getJSON("/positionsforskill/"+skillCompID, function (positions) {
+                positions = positions.positions;
                 for (var i = 0; i < positions.length; i++) {
-                  console.log("Positions i", positions[i])
+                  console.log("Positions i", positions[i]);
                   affectedPositions.push(positions[i].title);
                 }
-                console.log("affectedPositions", affectedPositions)
+                console.log("affectedPositions", affectedPositions);
                 alertBoxActionRemoval(action.action, description.description, affectedPositions) ;
-              })
+              });
               
-            })
-          })
+            });
+          });
 
           
 
@@ -511,13 +505,13 @@ async function fillPositionDetails (pos) {
           console.log("Just dropped " + nextPosition + " on ", thisPosition);
 
           $.ajax({
-            url: '/position/'.concat(thisPosition),
-            dataType: 'json',
-            type: 'patch',
-            contentType: 'application/json',
+            url: "/position/".concat(thisPosition),
+            dataType: "json",
+            type: "patch",
+            contentType: "application/json",
             data: JSON.stringify( {"nextPositions": nextPosition} ),
             success: function( data, textStatus, jQxhr ){
-              updateDetails(thisPosition)
+              updateDetails(thisPosition);
             },
             error: function( jqXhr, textStatus, errorThrown ){
                 console.log( errorThrown );
@@ -646,9 +640,9 @@ async function calculateSkillDelta (currPos, nextPos) {
 
     // for each skill in the current Position, check if the skill is present in the next position
     for (var i = 0; i < currSkills.length; i++) {
-      var currSkill = await currSkills[i];
+      var currSkill = currSkills[i];
       for (var j = 0; j < nextSkills.length; j++) {
-        var nextSkill = await nextSkills[j];
+        var nextSkill = nextSkills[j];
         var isPresent = false;
 
         if( currSkill.name != nextSkill.name ) {
@@ -675,7 +669,7 @@ async function calculateSkillDelta (currPos, nextPos) {
           // console.log("### currSkill.name == nextSkill.name");
           await skillDelta.push(thisSkill);
           // console.log("### skillDelta:", skillDelta.length, skillDelta);
-        } 
+        }
       }
     }
 
@@ -686,7 +680,7 @@ async function calculateSkillDelta (currPos, nextPos) {
     }
     
   } catch (e) {
-    throw (e)
+    throw (e);
   }
 
   // console.log("SkillDelta: ", skillDelta);
@@ -791,9 +785,9 @@ function addLearningForm(learningId, position) {
 function alertBoxActionRemoval(action, description, positions) {
     if (confirm("you are about to remove '"+action.action+"' from '"+description.description+"'. This will affect these positions: " + positions) == true) {
         console.log("remove that action");
-        $.getJSON('/removeactionfromdescription/' +action._id + '/' + description._id, function (description) {
+        $.getJSON("/removeactionfromdescription/" +action._id +"/"+ description._id, function (description) {
           console.log ("Description updated:", description);
-        })
+        });
 
     } else {
         console.log("rather not");
