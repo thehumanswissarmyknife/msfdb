@@ -4,7 +4,6 @@ var Schema = mongoose.Schema;
 
 var learningSchema = new Schema ({
 	name: String,
-	audience: Array,
 	modules: Array,
 	length: String,
 	remarks: String,

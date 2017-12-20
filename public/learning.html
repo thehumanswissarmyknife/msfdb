@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <title>Supply Learning Offers</title>
+    <link rel="stylesheet" type="text/css" href="./css/msfdb-learn-styles.css">
+    <link rel="stylesheet" type="text/css" href="./css/jquery-ui.min.css">
+    <link rel="stylesheet" type="text/css" href="./css/bootstrap.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+
+    <script src="./js/jquery-3.1.0.min.js"></script>
+    <script src="./js/jquery-ui.min.js"></script>
+    <script src="./bootstrap/js/bootstrap.js"></script>
+    <script src="./js/async.min.js"></script>
+    <script src="./js/lodash.core.js"></script>
+
+    <script>
+
+    $( function() {
+      $( "#accordion" ).accordion({
+        collapsible: true,
+        heightStyle: "content",
+        active: false
+      });
+    });
+    $(document).on({
+        ajaxStart: function() { $("body").addClass("loading");},
+        ajaxStop: function() { $("body").removeClass("loading");}    
+    });
+    </script>
+
+
+  </head>
+
+  <body>
+
+      <div class="row" id="header">
+        <div class="col-12"><h2>MSF Supply Learning Offers</h2></div>
+      </div>
+      <div class="main-content" id="content">
+          
+              <div class="learning-bar" id="learnings-sidebar"></div>
+              <div class="learning-details" id="learning-details"></div>
+              <div class="learning-toolbar" id="learning-toolbar">
+                <div id="accordion">
+                  <h3>Actions</h3>
+                    <div id="accordion-actions"><ul></ul></div>
+                  <h3>Positions</h3>
+                    <div id='accordion-positions'><ul></ul></div>
+                </div>
+                <div style="height: 1em"></div>
+              </div>
+
+
+      </div>
+      
+       <script src="./js/msfdb_learning.js"></script>
+       <div class="modal"><!-- Place at bottom of page --></div>
+  </body>
+</html>
