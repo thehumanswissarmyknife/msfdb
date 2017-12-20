@@ -1,5 +1,4 @@
 var myURL = "http://165.227.162.247:8080/";
-
 $body = $("body");
 
 $(document).on({
@@ -80,7 +79,6 @@ $.getJSON(myURL + "learnings", function(data) {
         $( ".draggable" ).draggable({ revert: true, helper: "clone" });
       } );
 });
-
 
 $( document ).ajaxStop(function() {
   $( ".position-box" ).click(function() {
@@ -619,7 +617,7 @@ function camelize(str) {
   }).replace(/\s+/g, '');
 }
 
-async function calculateSkillDelta (currPos, nextPos) {
+function calculateSkillDelta (currPos, nextPos) {
   var skillDelta = [];
   // console.log("currPos", currPos)
   // console.log("###############################");
@@ -627,7 +625,10 @@ async function calculateSkillDelta (currPos, nextPos) {
   try {
     // get full-position fr both positions
     var currentPosition = currPos;
-    var nextPosition = await $.getJSON(myURL + "full-position/" + nextPos);
+    $.getJSON(myURL + "full-position/" + nextPos,function(data){
+      console.log('here is next position...')
+      var nextPosition = data;
+   
 
     var currSkills = currentPosition.skills;
     var nextSkills = nextPosition.position.skills;
@@ -667,7 +668,7 @@ async function calculateSkillDelta (currPos, nextPos) {
             var thisSkill = {_id: currSkill._id + nextSkill._id, skill: currSkill.name, from: currSkill.level, to: nextSkill.level, adding: nextSkill.descriptions};
           }
           // console.log("### currSkill.name == nextSkill.name");
-          await skillDelta.push(thisSkill);
+          skillDelta.push(thisSkill);
           // console.log("### skillDelta:", skillDelta.length, skillDelta);
         }
       }
@@ -676,19 +677,19 @@ async function calculateSkillDelta (currPos, nextPos) {
     for(var i = 0; i < tempNextSkill.length; i++) {
       var newSkill = tempNextSkill[i];
       var thisNewSkill = {_id: currSkill._id + nextSkill._id, skill: nextSkill.name, from: 0, to: nextSkill.level, adding: nextSkill.descriptions};
-      await skillDelta.push(thisNewSkill);
+      skillDelta.push(thisNewSkill);
     }
-    
-  } catch (e) {
-    throw (e);
-  }
-
-  // console.log("SkillDelta: ", skillDelta);
+    // console.log("SkillDelta: ", skillDelta);
   // console.log("uniq Delta", uniqueDelta);
   
   return skillDelta;
   // if the skill is present, compare the levels 
   // if the level-delta is greater 0, display the new descriptions
+  });
+  } catch (e) {
+    throw (e);
+  }
+
 }
 
 function addLearningForm(learningId, position) {
