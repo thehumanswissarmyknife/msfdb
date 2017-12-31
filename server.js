@@ -12,13 +12,14 @@ var {SkillComp} = require('./models/skillComp');
 var {Action} = require('./models/action');
 var {Description} = require('./models/description');
 var {Knowledge} = require('./models/knowledge');
-var {Learning} = require('./models/learning')
+var {Learning} = require('./models/learning');
+var {Module} = require('./models/module');
 /**Including these two libraries to control flow */
 var async = require('async');
 var flowControl = require('./customlib/flowControl');
 
 const port = process.env.PORT || 8080;
-const mongoCon = process.env.MONGODB_URI || 'mongodb://165.227.162.247:30001/msfdb';
+const mongoCon = process.env.MONGODB_URI || 'mongodb://165.227.162.247:30001/msfdb_dev';
 
 // connection to the db
 mongoose.connect('mongodb://165.227.162.247:30001/msfdb', { useMongoClient: true });
@@ -29,7 +30,7 @@ app.use(bodyParser.json());
 
 //stat the server
 app.listen(port, function () {
-	console.log('Server is up and running, listening on port ' + port);
+	console.log('Server is up and running, listening on the sweet port ' + port);
 });
 
 // log what happens
@@ -37,9 +38,9 @@ app.use((req, res, next) => {
 	var now = new Date().toString();
 	var logLine = `${now}: ${req.method}${req.originalUrl}`;
 	console.log(logLine);
-	fs.appendFile('logs/server.log', logLine +  '\n', (err) => {
+	fs.appendFile('logs/dev-server.log', logLine +  '\n', (err) => {
 		if (err) {
-			console.log('Unable to write to file server.log');
+			console.log('Unable to write to file dev-server.log');
 		}
 	});
 	next();
@@ -134,23 +135,6 @@ app.get('/full-position/:id', async (req, res) => {
 	// }
 
 })
-
-app.get('/positionsforskill/:id', async (req, res) => {
-	var id = req.params.id;
-	if(!ObjectID.isValid(id)){
-		return res.status(404).send({status: 'not created', error: 'bad object ID'});
-	}
-	try {
-		// console.log(Position.find());
-		var positions = await Position.find({skills: id});
-
-		res.status(200).send({positions});
-	} catch (e) {
-		res.status(404).send(e);
-	}
-});
-
-
 // SKILLCOMPS
 app.post('/skillcomps', async (req, res) => {
 	try {
@@ -309,22 +293,6 @@ app.patch('/description/:id', async (req, res) => {
 	}
 });
 
-app.get('/removeactionfromdescription/:actionid/:descriptionid', async (req, res) => {
-	var actionid = req.params.actionid;
-	var descriptionid = req.params.descriptionid;
-	if (!ObjectID.isValid(actionid) || !ObjectID.isValid(descriptionid)  ) {
-		return res.status(404).send("Bad description ID");
-	} 
-
-	try {
-		console.log("ActionID", actionid, descriptionid)
-		thisDescription = await Description.findByIdAndUpdate(descriptionid, {$pull: {'actions': actionid }}, {'new': true})
-		res.status(200).send(thisDescription);
-	} catch (e) {
-		res.status(404).send(e);
-	}
-});
-
 app.get('/full-descriptions', async (req, res) => {
 	try {
 		var descriptionArray = await Description.find();
@@ -385,7 +353,7 @@ app.post('/actions', async (req, res) => {
 	}
 });
 
-app.patch('/action/:id', async (req, res) => {
+app.patch('/actions/:id', async (req, res) => {
 	var id = req.params.id;
 	if (!ObjectID.isValid(req.params.id)) {
 		return res.status(404).send({});
@@ -432,7 +400,7 @@ app.get('/full-actions', async (req, res) => {
 	
 });
 
-app.get('/full-action/:id', async (req, res) => {
+app.get('/full-actions/:id', async (req, res) => {
 	var id = req.params.id;
 	if(!ObjectID.isValid(id)){
 		return res.status(404).send('Bad action ID');
@@ -450,7 +418,7 @@ app.get('/full-action/:id', async (req, res) => {
 	
 });
 
-app.get('/action/:id', async (req, res) => {
+app.get('/actions/:id', async (req, res) => {
 	var thisAction = req.params.id;
 
 	if(!ObjectID.isValid(thisAction)){
@@ -532,6 +500,122 @@ app.get('/learning/:id', async (req, res) => {
 		res.status(404).send(e);
 	}
 });
+
+app.get('/full-learning/:id', async (req, res) => {
+
+	var id = req.params.id;
+	try {
+		var learning = await getFullLearning(id);
+		res.status(200).send({learning});
+	} catch (e) {
+		res.status(404).send(e);
+	}
+});
+
+app.get('/full-learnings', async (req, res) => {
+	try {
+		var learnings = [];
+		var learningArray = await Learning.find();
+		// console.log("actionArray", learningArray);
+
+		for(var i = 0; i < learningArray.length; i++){
+			// console.log("inside the learning for loop");
+			learnings.push(await getFullLearning(learningArray[i]._id));
+
+		}
+		console.log("learnings", learnings);
+		res.status(200).send({learnings});
+	} catch (e) {
+		res.status(404).send(e);
+	}
+});
+
+// MODULES
+
+app.post("/module", async (req, res) => {
+	console.log(req.body);
+	try {
+		console.log(req.body);
+		var module = new Module(req.body);
+		console.log(req.body);
+
+		module = await module.save();
+		res.status(200).send({module, status: "created"});
+	} catch (e) {
+		res.status(404).send(e);
+	}
+});
+
+app.get('/modules', async (req, res) => {
+	try {
+		var modules = await Module.find();
+		res.status(200).send({modules});
+	} catch (e) {
+		res.status(404).send(e);
+	}
+});
+
+app.patch('/module/:id', async (req, res) => {
+	var id = req.params.id;
+	if (!ObjectID.isValid(req.params.id)) {
+		return res.status(404).send({});
+	} 
+
+	var thisModule = "";
+
+	var body = _.pick(req.body, ['actions']);
+	try {
+		for(var i = 0; i< body.actions.length; i++) {
+			thisModule = await Module.findByIdAndUpdate(id, {$addToSet: {actions: body.actions[i]}}, {new: true});
+		}
+		res.status(200).send(thisModule);
+	} catch(e) {
+		res.status(404).send(e);
+	}
+	// var skillcomp = await SkillComp.findByIdAndUpdate(id, {$addToSet: body}, {new: true});
+})
+
+app.get('/full-modules', async (req, res) => {
+	try {
+		var modulesArray = await Module.find();
+		var modules = [];
+
+		for(var i = 0; i < modulesArray.length; i++) {
+			modules.push(await getFullModule(modulesArray[i]._id));
+		}
+		res.status(200).send({modules});
+	} catch (e) {
+		res.status(404).send(e);
+	}
+});
+
+app.get("/module/:id", async (req, res) => {
+	var id = req.params.id;
+
+	if (!ObjectID.isValid(id)) {
+		res.status(404).send( "module position ID");
+	};
+	try {
+		var module = await Module.findById(id);
+		res.status(200).send({module})
+	}catch (e) {
+		res.status(404).send(e);
+	}
+})
+
+app.get("/full-module/:id", async (req, res) => {
+	var id = req.params.id;
+	if (!ObjectID.isValid(id)) {
+		res.status(404).send( "module position ID");
+	};
+	try {
+		var module = await getFullModule(id);
+		res.status(200).send({module})
+	}catch (e) {
+		res.status(404).send(e);
+	}
+})
+
 
 async function getFullPosition(id) {
 	console.log("getFullPosition");
@@ -869,8 +953,61 @@ async function getFullAction (id) {
 
 }
 
+async function getFullLearning (id) {
+	if (!ObjectID.isValid(id)) {
+		throw "bad learning ID";
+	}
+
+	try {
+		var thisLearning = await Learning.findById(id);
+		// console.log("inside the getFullLearning", thisLearning);
+
+		// get all full modules
+		var modules = [];
+		var modulesArray = thisLearning.modules;
+		console.log("ModulesArray", modulesArray);
+		for (var i = 0; i < modulesArray.length; i++) {
+			if (!ObjectID.isValid(modulesArray[i])){
+				throw "Bad module ID";
+			}
+			var thisModule = await getFullModule(modulesArray[i]);
+			modules.push(thisModule);
+		}
+		thisLearning.modules = await modules;
+
+		return thisLearning;
+
+	} catch (e) {
+		throw (e);
+	}
+}
+
+async function getFullModule (id) {
+	if(!ObjectID.isValid(id)) {
+		throw "bad module ID";
+	}
+
+	try {
+		var thisModule = await Module.findById(id);
+
+		var actions = [];
+		var actionsArray = thisModule.actions;
+
+		for (var i = 0; i < actionsArray.length; i++) {
+			var thisAction = await getFullAction(actionsArray[i]);
+			actions.push(thisAction);
+		}
+		thisModule.actions = await actions;
+
+		return thisModule;
+	} catch (e) {
+		console.log(e);
+	}
+}
+
 async function asyncForEach(array, callback) {
   for (let index = 0; index < array.length; index++) {
     await callback(array[index], index, array)
   }
 }
+
