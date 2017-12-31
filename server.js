@@ -374,7 +374,7 @@ app.patch('/actions/:id', async (req, res) => {
 
 app.get('/actions', async (req, res) => {
 	try {
-		var actions = await Action.find();
+		var actions = await Action.find().sort({skill:-1});
 		res.status(200).send({actions});
 	} catch (e) {
 		res.status(404).send(e);
@@ -384,7 +384,7 @@ app.get('/actions', async (req, res) => {
 app.get('/full-actions', async (req, res) => {
 	try {
 		var actions = [];
-		var actionArray = await Action.find();
+		var actionArray = await Action.find().sort({skill:-1});
 		// console.log("actionArray", actionArray);
 
 		for(var i = 0; i < actionArray.length; i++){
@@ -483,7 +483,7 @@ app.post('/learning', async (req, res) => {
 
 app.get('/learnings', async (req, res) => {
 	try {
-		var learnings = await Learning.find();
+		var learnings = await Learning.find().sort({_id:1});
 		res.status(200).send({learnings});
 	} catch (e) {
 		res.status(404).send(e);
@@ -515,7 +515,7 @@ app.get('/full-learning/:id', async (req, res) => {
 app.get('/full-learnings', async (req, res) => {
 	try {
 		var learnings = [];
-		var learningArray = await Learning.find();
+		var learningArray = await Learning.find().sort({_id:1});
 		// console.log("actionArray", learningArray);
 
 		for(var i = 0; i < learningArray.length; i++){

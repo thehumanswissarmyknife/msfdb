@@ -15,10 +15,10 @@ $.getJSON("/learnings", function (data) {
 
 	// // at the end of the list, create the option to create a new one:
 	// $("#learnings-sidebar").append(
-	// 	$("<div/>").append(
-	// 		$("<button/>", {text:"enter new learning offer", class:"learning-box", id:"newLearning"})
-	// 		)
-	// 	);
+	// $("<div/>").append(
+	//		$("<button/>", {text:"enter new learning offer", class:"learning-box", id:"newLearning"})
+	//		)
+	// );
 
 	$(function() {
 		$(".draggable").draggable({
@@ -329,7 +329,7 @@ function updateDetails (id) {
 						}),
 						success: function(data, textStatus, jQxhr) {
 							// when successfull, update the page!
-							updateDetails(thisLearning._id);
+							// updateDetails(thisLearning._id);
 						},
 						error: function(jqXhr, textStatus, errorThrown) {
 							console.log(errorThrown);

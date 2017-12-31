@@ -49,13 +49,16 @@ a:active {
     position: fixed;
     margin-left: 205px;
     margin-right:200px;
-    width:calc(100% - 410px);
+    width:calc(100% - 510px);
     overflow-y:scroll;
     height: calc(100% - 50px); 
     background-color: rgb(80, 80, 80);
     color: white;
     padding: 5px 5px 5px 15px;
     z-index: 0;
+}
+li {
+
 }
 
 .pos-detail-header {
@@ -69,7 +72,7 @@ a:active {
 .learning-toolbar {
     position:fixed;
     height:calc(100% - 70px);
-    width:200px;
+    width:300px;
     right:0px;
     overflow-y:auto;
     font-size: 14px;
@@ -79,7 +82,8 @@ a:active {
 }
 
 .learning-toolbar ul{
-    padding-left: 0px
+    list-style-type: circle;
+    padding-left: 10px
 }
 
 .myDropzone {

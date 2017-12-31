@@ -41,9 +41,13 @@ mongoose.Promise = global.Promise;
 
 // removeAllDescriptions();
 // updateDescriptions();
-updateActions() ;
+// updateActions() ;
 // removeAllNextPositions();
 // updateComps();
+
+// addSkillToActions();
+
+
 
 
 
@@ -135,6 +139,24 @@ async function updateActions () {
 			console.log(e);
 		}
 		// console.log(element);
+	})
+}
+
+async function addSkillToActions () {
+	console.log("adding the skills to each action");
+
+	actionsForDb.forEach(async function (element) {
+		try {
+			const body = _.pick(element, ['action', 'skill']);
+
+			var temp = await Action.find({action: body.action});
+
+			const thisAction = await Action.findByIdAndUpdate(temp[0]._id, {skill: body.skill});
+			console.log(thisAction);
+
+		} catch (e) {
+			console.log(e);
+		}
 	})
 }
 
