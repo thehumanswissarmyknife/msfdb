@@ -614,7 +614,69 @@ app.get("/full-module/:id", async (req, res) => {
 	}catch (e) {
 		res.status(404).send(e);
 	}
-})
+});
+
+app.get('/learning-gap', async (req, res) => {
+	console.log("Getting the learning gap");
+
+	// get  all actions and put them into an array = 
+	var allActions = [];
+	var coveredActions = [];
+	var coveredActionsAndModules = [];
+	var uncoveredActions = [];
+	var allLearnings = {};
+
+	try {
+		var actions = await Action.find();
+		for (var i = 0; i < actions.length; i++) {
+			allActions.push({_id:actions[i]._id.toString(), action:actions[i].action.toString(), skill:actions[i].skill.toString()});
+		}
+
+		// uncoveredActions = allActions;
+
+		// collect all actions from themodules and save them in the coveredActions array
+		var modules = await Module.find();
+		for (var j = 0; j < modules.length; j++) {
+			for (var k = 0; k < modules[j].actions.length; k++) {
+				if (coveredActions.indexOf(modules[j].actions[k]) === -1) {
+					coveredActions.push(modules[j].actions[k].toString());
+
+					var tempAction = await Action.findById(modules[j].actions[k]);
+					coveredActionsAndModules.push({action: tempAction.action, _id:tempAction._id, module: modules[j].name});
+				} else {
+					// console.log("Element already present");
+				}
+			}
+		}
+		// console.log("CoveredActions:", coveredActions);
+
+		// console.log("##################", coveredActions.indexOf("5a33ba6cd1b08309bfbb6a1b"));
+
+		for (var l = 0; l < allActions.length; l++) {
+
+			if (coveredActions.indexOf(allActions[l]._id) === -1) {
+				uncoveredActions.push(allActions[l]);
+				console.log("Splicing");
+			} else {
+				console.log("Element already present");
+			}
+		}
+
+		console.log("CoveredActions:", coveredActions.length);
+		console.log("uncoveredActions:", uncoveredActions.length);
+		console.log("All Actions:", allActions.length);
+		res.status(200).send({uncoveredActions, coveredActionsAndModules});
+
+	} catch (e) {
+		throw (e);
+	}
+
+	// get all all full learnings and extract all actions into an array = covered learnings!
+
+	// cycle throught eh covered learnings and check the full actions if the action is in, if yes, pull it!
+
+
+});
 
 
 async function getFullPosition(id) {

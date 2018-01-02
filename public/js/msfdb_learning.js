@@ -65,6 +65,23 @@ $.getJSON("/positions", function (data) {
 	});
 });
 
+// // get all modules  and fill them in the toolbar
+// $.getJSON("/modules", function (data) {
+// 	var modules = data.modules;
+// 	modules.forEach(function (element) {
+// 		$("#accordion-modules ul").append(
+// 			$("<li/>", {class: "draggable ui-draggable ui-draggable-handle module", id:element._id, text:toTitleCase(element.name)})
+// 			);
+// 	});
+
+// 	$(function() {
+// 		$(".draggable").draggable({
+// 			revert: true,
+// 			helper: "clone"
+// 		});
+// 	});
+// });
+
 // to be done, when all ajax requests are finished...
 $(document).ajaxStop(function () {
 
@@ -224,7 +241,7 @@ function updateDetails (id) {
 				$("<div/>", {class:"learning-methodology", id:"det-" + id + "-methodology", text:"Methodology: " + thisLearning.methodology}),
 				$("<div/>", {class:"learning-remarks", id:"det-" + id + "-remarks", text:"Comment: " + thisLearning.remarks}),
 				$("<div/>", {class:"learning-periodity", id:"det-" + id + "-periodity", text:"Periodity: " + thisLearning.periodity}),
-				$("<div/>", {class:"learning-modules", id:"det-" + id + "-modules" }).append(
+				$("<div/>", {class:"learning-modules", id:"det-" + id + "-modules", class: "myDropzone-module"}).append(
 					$("<h3/>", { text:"Modules: "})
 					)
 				)
@@ -285,8 +302,17 @@ function updateDetails (id) {
 			$("#mod-"+thisModule._id+"-dur").append(thisModule.duration + " minutes");
 
 		}
-
-		$(".learning-length").append("approximately " + parseInt(learningLength/60) + "h " + learningLength%60 + " minutes");
+		if(thisLearning.length!=null) {
+			$(".learning-length").append(thisLearning.length);
+		} else {
+			if(learningLength < 480) {
+				$(".learning-length").append("approximately " + parseInt(learningLength/60) + "h " + learningLength%60 + " minutes");
+			} else {
+				$(".learning-length").append("approximately " + parseInt(learningLength/480) + " day(s) ");
+			}
+		}
+		
+		
 
 		// after all details are filled, do some jQuery UI stuff
 		$( function() {
@@ -316,6 +342,7 @@ function updateDetails (id) {
 
 					// get the id of the dropped action and the module
 					var droppedAction = $(ui.draggable).attr("id");
+					var actionText = $(ui.draggable).text();
 					var module = $(this).attr("id").substring(4, 28);
 
 					// AJAX patching of the module
@@ -330,6 +357,42 @@ function updateDetails (id) {
 						success: function(data, textStatus, jQxhr) {
 							// when successfull, update the page!
 							// updateDetails(thisLearning._id);
+							$("#mod-"+module+"-act ul").append(
+								$("<li/>", {class:"draggable mod-action", id:"act-"+droppedAction, text:actionText})
+								);
+						},
+						error: function(jqXhr, textStatus, errorThrown) {
+							console.log(errorThrown);
+						}
+					});
+				}
+			});
+
+			$(".myDropzone-module").droppable({
+				accept: ".module",
+				classes: {
+					"ui-droppable-active": "ui-state-active",
+					"ui-droppable-hover": "ui-state-hover"
+				},
+				drop: function(event, ui) {
+					console.log("Dropped something?>");
+
+					// get the id of the dropped action and the module
+					var droppedModule = $(ui.draggable).attr("id");
+					var learning = $(this).attr("id").substring(4, 28);
+
+					// AJAX patching of the module
+					$.ajax({
+						url: "/learning/".concat(learning),
+						dataType: "json",
+						type: "patch",
+						contentType: "application/json",
+						data: JSON.stringify({
+							actions: [droppedAction]
+						}),
+						success: function(data, textStatus, jQxhr) {
+							// when successfull, update the page!
+							updateDetails(thisLearning._id);
 						},
 						error: function(jqXhr, textStatus, errorThrown) {
 							console.log(errorThrown);
