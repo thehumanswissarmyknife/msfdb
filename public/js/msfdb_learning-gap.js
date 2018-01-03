@@ -5,35 +5,82 @@ $.getJSON("/learning-gap", function (data) {
 
 	$("#learning-details").append(
 		$("<h2/>", {text:"supply actions not covered by learning offers"}),
-		$("<div/>", {id:"uncoveredActions"}).append(
+		$("<div/>", {id:"uncoveredActions-accordion"}).append(
 			$("<ul/>")
 			)
-		)
+		);
 
+	// loop through all the actions not covered by learnig offers
 	data.uncoveredActions.forEach(function (element) {
 		var thisId = element._id;
 		var thisAction = element.action;
 
 		// check if we already have a heading for this SKILL, if no, create one, otherwise
-		if ( $( ".skill-" + camelize(element.skill)).length>0) {
-			$("#skill-" + camelize(element.skill) +" ul").append(
-				$("<li/>", {text: element.action}))
+		if ( $( ".uncoveredAction-skill-" + camelize(element.skill)).length>0) {
+			$("#uncoveredAction-skill-" + camelize(element.skill) +"-ul").append(
+				$("<li/>", {text: element.action})
+				);
 
 			// append 
 		} else {
-			$("#uncoveredActions").append(
-				$("<h7/>", {id:"skill-" + camelize(element.skill), class:"skill-" + camelize(element.skill), text:toTitleCase(element.skill)}).append(
-					$("<ul/>", {id:"skill-" + camelize(element.skill)+"-ul"}).append(
+			$("#uncoveredActions-accordion").append(
+				$("<h7/>", {id:"uncoveredAction-skill-" + camelize(element.skill), class:"uncoveredAction-skill-" + camelize(element.skill), text:toTitleCase(element.skill)}),
+				$("<div/>").append(
+					$("<ul/>", {id:"uncoveredAction-skill-" + camelize(element.skill)+"-ul"}).append(
 						$("<li/>", {text: element.action}))
 					)
-				
-			)
+			);
 		}
+	});
 
-		// $("#uncoveredActions ul").append(
-		// 	$("<li/>", {class: "position-box", id: thisId, text: thisAction})
-		// 	);
+	$("#learning-details").append(
+		$("<h2/>", {text:"supply actions that are already covered by learning offers"}),
+		$("<div/>", {id:"coveredActions-accordion"}).append(
+			$("<ul/>")
+			)
+		);
 
+	// loop through all actions that are covered by a learning offer
+	data.coveredActionsAndModules.forEach(function (element) {
+
+		// check if we already have a heading for this SKILL, if no, create one, otherwise
+		if ( $( ".coveredAction-skill-" + camelize(element.skill)).length>0) {
+			$("#coveredAction-skill-" + camelize(element.skill) +"-ul").append(
+				$("<li/>", {text: element.action + " ["+element.learning +" - "+ element.module+"]"})
+				);
+
+			// append 
+		} else {
+			$("#coveredActions-accordion").append(
+				$("<h7/>", {id:"coveredAction-skill-" + camelize(element.skill), class:"coveredAction-skill-" + camelize(element.skill), text:toTitleCase(element.skill)}),
+				$("<div/>").append(
+					$("<ul/>", {id:"coveredAction-skill-" + camelize(element.skill)+"-ul"}).append(
+						$("<li/>", {text: element.action + " ["+element.learning +" - "+ element.module+"]"}))
+					)
+			);
+		}
+	});
+
+
+
+
+
+	$( function() {
+		// activte the accordion for unvocered actions
+		$( "#uncoveredActions-accordion" ).accordion({
+		collapsible: true,
+		heightStyle: "content",
+		header: "h7",
+		active: false
+		});
+
+		// activte the accordion for unvocered actions
+		$( "#coveredActions-accordion" ).accordion({
+		collapsible: true,
+		heightStyle: "content",
+		header: "h7",
+		active: false
+		});
 	});
 
 });

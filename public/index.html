@@ -2,36 +2,62 @@
 <html>
 
   <head>
-    <title>HR position table</title>
+    <title>Supply Learning Management</title>
     <link rel="stylesheet" type="text/css" href="./css/msfdb-styles.css">
     <link rel="stylesheet" type="text/css" href="./css/jquery-ui.min.css">
-    <link rel="stylesheet" type="text/css" href="./css/bootstrap.min.css">
-    <!-- <link rel="stylesheet" type="text/css" href="./bootstrap/css/bootstrap.css"> -->
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+    <!-- <link rel="stylesheet" type="text/css" href="./css/bootstrap.min.css"> -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
 
     <script src="./js/jquery-3.1.0.min.js"></script>
     <script src="./js/jquery-ui.min.js"></script>
-    <script src="./bootstrap/js/bootstrap.js"></script>
+    <!-- <script src="./bootstrap/js/bootstrap.js"></script> -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="./js/async.min.js"></script>
+    <script src="./js/lodash.core.js"></script>
+
+    <script>
+    $(document).on({
+        ajaxStart: function() { $("body").addClass("loading");},
+        ajaxStop: function() { $("body").removeClass("loading");}    
+    });
+    </script>
 
 
   </head>
 
   <body>
-      <div class="container" id="hr">
+
+      <div class="row myHeader" id="header">
+        <div class="col-12"><h2>MSF-H Supply Learning Management</h2></div>
+        <div class="nav col-12">
+          <div class="myNav">
+            <ul class="nav nav-tabs">
+              <li role="presentation" class="active navPos" id="navPos"><a href="#">Position/Skills</a></li>
+              <li role="presentation" class="navLearn" id="navLearn"><a href="#">Learning Offers</a></li>
+              <li role="presentation" class="navGap" id="navGap"><a href="#">Learning Gap</a></li>
+            </ul>
+          </div>          
+        </div>
+
+      </div>
+      <div class="main-content" id="content">
           
-          <h1>MSF HR Positions and their skills / competencies</h1>
-              <div class="container" id="levels">
+              <div class="sidebar" id="sidebar">
+                <div id="side-accordion">
+                </div>
+                <div style="height: 1em"></div>
+              </div>
+              <div class="details" id="details"></div>
+              <div class="toolbar" id="toolbar">
+                <div style="height: 1em"></div>
               </div>
 
 
       </div>
-      <div class="endofpage">&nbsp;</div>
-      <div class="position-skillComp-overview row" id="position-skillcomp-overview">
-      </div>
       
-      <script src="./js/msfdb.js"></script>
-
+       <script src="./js/msfdb.js"></script>
+       <div class="modal"><!-- Place at bottom of page --></div>
   </body>
 </html>

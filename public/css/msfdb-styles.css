@@ -1,341 +1,112 @@
 .path {
-	background-color: white;
-	height: 100%;
+    background-color: white;
+    height: 100%;
 }
 
 #details {
-	background-color: green;
-	height: 100%;
+    height: 100%;
 }
 #title {
-	text-align: center;
+    text-align: center;
 }
 
 #content {
-	height: 100%;
+    height: 90%;
+}
+.myHeader {
+    background-color: #a8b6bf;
+
+}
+
+.myNav {
+    margin-left: 260px;
 }
 body {
     font-family: 'Helvetica Neue', Arial;
 }
 
-.hr-level {
-    min-height: 150px;
-    margin: 10px 0 10px 0;
-    background-color: antiquewhite
-
-}
-.level-title {
-    font-size: 30px;
-    font-family: Arial;
-    position: relative;
-    left: -50px;
-}
-
-.level-positions {
-    /*float: left;*/
-    margin-left: 30px;
-}
-
-.position-box {
-    min-height: 50px;
-    margin: 10px 10px 30px 10px;
-    font-weight: 300;
-    width: 120px;
-    height: 120px;
-    padding-left: 10px;
-    padding-right: 10px;
-    text-align: center;
-    float: left;
-    border-style: solid;
-    border-width: 1px;
-    z-index: 1000;
-}
-
-.position-details{
-    background-color: rgba(255, 10, 100, 0.5);
-    z-index: 1050;
-    margin: auto;
-    width: 90%;
-    height: 90%;
-    border: 3px solid green;
-    padding: 10px;
-    position: fixed;
-}
-
-.position-title {
-    font-size: 14px;
-    height: 90%;
-    width: 100px;
-    top:0px;
-
-}
-.position-skillComp-overview {
-    position: fixed;
-    left:0px;
-    bottom: 0px;
-    height: 120px;
-    background-color: blue ;
-    width: 100%;
-    z-index: 1040;
-}
-
-.position-title-sc {
-    position: absolute;
-    bottom: 120px;
-    background-color: white;
-    border-style: solid;
-    border-color: black;
-    border-width: 1px;
-    z-index: 1040;
-
-}
-
-.position-skillComp-overview-closer {
-    position: absolute;
-    top:-20px;
-    left: 0px;
-    color: white;
-    height: 20px;
-    width:50px;
-    background-color: black;
-}
-
-.skillcomp{
-    background-color: red;
-}
-
-.subtractor {
-    border-style: solid;
-    border-width: 1px;
-    border-color: blue;
-    background-color: blue;
-    height: 15px;
-    width: 15px;
-    position: relative;
-    left: -25px;
-    top:-15px;
-    font-size: 9px;
-    font-weight: bold;
-    color: white;
-    padding-top: -5px;
-    border-radius: 5px;
-    z-index: 1000;
-}
-
-.info{
-    font-size: 12px;
-    border-color: black;
-    border-style: solid;
-    border-width: 1px;
-    position:relative;
-    top:118px;
-    border-bottom-right-radius: 10px;
-    border-bottom-left-radius: 10px;
-    z-index: 1020;
-}
-
 .row {
-    margin-left: 0px;
-    margin-right: 0px;
-}
-
-.drawingboard {
-    z-index: 900;
-}
-.canvas-div {
-    z-index: 900;
-}
-
-line {
-    stroke: black;
-    stroke-width:2px;
-    z-index: -900;
-}
-
-
-.pos-single-skill-box {
-    height:100%;
-    float: left;
-    width: 100%;
-    position: relative;
-    bottom: 0px;
-    background-color: white;
+    color: black;
     text-align: center;
-    border-style: solid;
-    border-color: black;
-    border-width: 1px;
-    font-size: 12px;
-}
-.pos-single-comp-box {
-    height:100%;
-    float: left;
-    width: 100%;
-    position: relative;
-    bottom: 0;
-    background-color: white;
-    text-align: center;
-    border-style: solid;
-    border-color: black;
-    border-width: 1px;
-    font-size: 12px;
+    padding-top: 15px;
 }
 
-.pos-skill-container-50 {
-    width: 50%;
-    height:100%;
-    float: left;
-    margin: 0 5 0 0;
-
-}
-.pos-comps-container-50 {
-    width: 50%;
-    height:100%;
-    float:right;
-    margin: 0 0 0 5;
-
+#sidebar {
+    position:fixed;
+    height:calc(100% - 70px);
+    width:250px;
+    overflow-y:auto;
+    font-size: 14px;
+    background-color: #edd9c0;
+    padding-left: 5px;
+    padding-right: 5px;
 }
 
-.height-1 {
-    margin-top: 6em;
-    height: 3em;
+#details {
+    position: fixed;
+    margin-left: 250px;
+    margin-right:250px;
+    width:calc(100% - 500px);
+    overflow-y:auto;
+    height: calc(100% - 50px); 
+    background-color: #c9d8c5;
+    color: black;
+    padding: 10px 10px 10px 10px;
+    z-index: 0;
 }
 
-.height-2 {
-    margin-top: 4em;
-    height: 5em;
+#toolbar {
+    position:fixed;
+    height:calc(100% - 70px);
+    width:250px;
+    right:0px;
+    overflow-y:auto;
+    font-size: 14px;
+    background-color: #b0aac2;
+    padding-left: 5px;
+    padding-right: 5px;
 }
 
-.height-3 {
-    margin-top: 2em;
-    height: 7em;
+#toolbar ul{
+    list-style-type: circle;
+    padding-left: 10px
 }
 
-.height-4 {
-    margin-top: 0em;
-    height: 9em;
+.modal {
+    display:    none;
+    position:   fixed;
+    z-index:    1000;
+    top:        0;
+    left:       0;
+    height:     100%;
+    width:      100%;
+    background: rgba( 255, 255, 255, .9 ) 
+                url('http://i.stack.imgur.com/FhHRx.gif')
+                50% 50% 
+                no-repeat;
+}
+/* visited link */
+a:visited {
+    color: black;
 }
 
-
-
-.endofpage {
-    height: 120px;
-    background-color: white ;
-    width: 100%
+/* selected link */
+a:active {
+    color: blue;
 }
 
+li {
 
-
-
-
-
-.position-skill-box {
-    /*width: 150px;*/
-    background-color: aqua;
-    float: left;
 }
 
-.position-comp-box {
-    background-color: aquamarine;
-    /*width: 150px;*/
-    border: 1px;
-    float:left;
+/* When the body has the loading class, we turn
+   the scrollbar off with overflow:hidden */
+body.loading {
+    overflow: hidden;   
 }
 
-.skill-box {
-    height: 15px;
-    float: left;
-    width: 20px;
-    border-width: 1px;
-    border-style: dotted;
+/* Anytime the body has the loading class, our
+   modal element will be visible */
+body.loading .modal {
+    display: block;
 }
-
-#skillcomp{
-    height: 15px;
-    /*width: 120px;*/
-    border-width: 1px;
-    border-style: dotted;
-    position: relative;
-    left:0px;
-    top: 10px;
-}
-
-.sWarehouseing {
-    background-color: #99c0ff;
-    height: 0px;
-}
-
-.sTransport {
-    background-color: #7b9fd8;
-    height: 0px;
-}
-.sCustoms {
-    background-color: #6485ba;
-    height: 0px;
-}
-.sProcurement {
-    background-color: #5673a0;
-    height: 0px;
-}
-.sSupplyIS {
-    background-color: #487dce;
-    height: 0px;
-}
-.sDemandPlanning {
-    background-color: #3985f9;
-    height: 0px;
-}
-.sCustomerServiceManagement {
-    background-color: #0b53c1;
-    height: 0px;
-}
-.sSupplyProcessSynchronization {
-    background-color: #073984;
-    height: 0px;
-}
-.sCommitmentToMsfPprinciples {
-    background-color: #082dd1;
-    height: 0px;
-}
-.cBehaviouralFlexibility {
-    background-color: #9407d1;
-    height: 0px;
-}
-.cStressManagement {
-    background-color: #b20bc1;
-    height: 0px;
-}
-.cResultsAndQualityOrientation {
-    background-color: #862c8e;
-    height: 0px;
-}
-.cTeamworkAndCooperation {
-    background-color: #b14cba;
-    height: 0px;
-}
-.cServiceOrientation {
-    background-color: #cc78d3;
-    height: 0px;
-}
-.cPeopleManagementAndDevelopment {
-    background-color: #f799ff;
-    height: 0px;
-}
-.cStrategicVision {
-    background-color: #ff7cd3;
-    height: 0px;
-}
-.cLeadership {
-    background-color: #ff30b9;
-    height: 0px;
-}
-.position-details {
-    position: relative;
-    top: -15px;
-    font-size: 9px;
-}
-
-
-
-
-
-

@@ -1,3 +1,4 @@
+// this variable holds all actions prepackaged in options
 var actionOptions = "";
 
 // get all learnings into the sidebar

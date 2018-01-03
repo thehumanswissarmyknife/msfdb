@@ -1,408 +1,1171 @@
-var isClicked = "";
-
-$.get("http://165.227.162.247:3000/positions", function(data) {
-
-  $("#position-skillcomp-overview").hide();
-  data.positions.sort(compareLevels);
-
-    for(i = 0; i < data.count; i++) {
-        var thisLevel = data.positions[i].level;
-        var thisTitle = data.positions[i].title.toLowerCase().replace(/\s+/g, '');
-        var thisId = data.positions[i]._id;
-        var nextPositions = data.positions[i].nextPositions;
 
 
-        // if there is no box for this level yet, create it
-        if(!$("#"+data.positions[i].level).length){
-            $("#levels").append("<div class='hr-level col-xs-12' id='"+ thisLevel +"'></div>");
+// when looking at the position
+$(".navPos").click(function () {
+	// change the navigation bar
+	prepPage("navPos");
 
-            //get into the level div and add a div for the level-title
-            $("#" + thisLevel).append("<div class='level-title' id='"+ thisLevel +"-title'></div>");
-            $("#" + thisLevel +"-title").html(thisLevel);
-            $("#" + thisLevel +"-title").css({float: 'left'});
-            $("#" + thisLevel).append("<div class='level-positions' id='"+ thisLevel +"-positions'></div>");      
-        }
+	$("#sidebar").append(
+		$("<div/>", {id:"positions"})
+		);
 
-        //create the boxes for t
-        $("#" + thisLevel + "-positions").append("<div class='position-box' id='" + thisId+ "'></div>");
+	$("#toolbar").prepend(
+		$("<div/>", {id:"accordion"}).append(
+			$("<h3/>", {text:"Actions"}),
+			$("<div/>", {id:"accordion-actions"}).append(
+				$("<ul/>")
+				),
+			$("<h3/>", {text:"Positions"}),
+			$("<div/>", {id:"accordion-positions"}).append(
+				$("<ul/>")
+				),
+			$("<h3/>", {text:"Tech Skills & Competencies"}),
+			$("<div/>", {id:"accordion-skillcomps"}).append(
+				$("<ul/>")
+				),
+			$("<h3/>", {text:"Learnings"}),
+			$("<div/>", {id:"accordion-learnings"}).append(
+				$("<ul/>")
+				)
+			)
+		);
 
-        // this is the small box for the dragging and dropping - comment, if no longer needed
-        $("#" + thisId).append("<div class='subtractor' id='sub-" + thisId + "'>&nbsp;</div>");
-        var subPosLeft = $("#" + thisId).width()/2 - $("#sub-"+ thisId).width()/2;
-        $("#sub-"+ thisId).css({left: subPosLeft});
+	// get all positions into the sidebar
+	$.getJSON("/positions", function(data) {
 
-        
+		data.positions.sort(compareLevels);
+
+		data.positions.forEach(function(element) {
+			var thisId = element._id;
+
+			$("#positions").append(
+				$("<div/>", {class:"position-box", id:thisId}).append(
+					$("<div/>", {class:"position-title", id:thisId + "-title-box"}).append(
+						$("<a/>", {text:toTitleCase(element.title), href:"#"})
+						)
+					)
+				);
+
+			$("#accordion-positions ul").append(
+				$("<li/>", {class:"draggable position", id:thisId, text:toTitleCase(element.title)})
+				);
+		});
+	});
+
+	// get all actions and fill them in the toolbar
+	$.getJSON("/actions", function(data) {
+
+		var actions = data.actions;
+
+		actions.forEach(function(element) {
+			$("#accordion-actions ul").append(
+				$("<li/>", {class: "draggable action", id:element._id, text: element.action})
+				);
+		});
+	});
+
+	// get all skillcomps and fill them in the toolbar
+	$.getJSON("/skillcomps", function(data) {
+		var skillcomps = data.skillComps;
+		skillcomps.sort(sortSkillComps);
+
+		skillcomps.forEach(function(element) {
+			if (element.level > 0) {
+				$("#accordion-skillcomps ul").append(
+					$("<li/>", {class:"draggable skillcomp", id:element._id, text: toTitleCase(element.name) + " " + element.level})
+					);
+			}
+		});
+	});
+
+	// get all learnings  and fill them in the toolbar
+	$.getJSON("/learnings", function(data) {
+		var learnings = data.learnings;
+		learnings.forEach(function(element) {
+			$("#accordion-learnings ul").append(
+				$("<li/>", {class:"draggable learning", id:element._id, text:element.name})
+				);
+		});
+	});
+
+	$(function() {
+		$(".draggable").draggable({
+			revert: true,
+			helper: "clone"
+		});
+
+		$( "#accordion" ).accordion({
+			collapsible: true,
+			heightStyle: "content",
+			active: false
+		});
+	});
+
+
+	$(document).ajaxStop(function() {
+		$(".position-box").click(function() {
+			var id = $(this).attr("id");
+
+			// show the details for this position
+			updateDetails(id);
+		});
+	});
+
+	function updateDetails(id) {
+
+		//load all data for this position
+		$.getJSON("/full-position/" + id, function(data) {
+			console.log("id", id);
+			$("#details").children().remove();
+			fillPositionDetails(data);
+		});
+	}
+
+
+	function fillPositionDetails(pos) {
+		var position = pos.position;
+
+		console.log("POSITION INPUT", position);
+		var id = position._id;
+		console.log("Filling details for ", position.title);
+		$("#details").empty();
+
+		$("#details").append(
+			$("<div/>", {id:"pos-detail-header"}).append(
+				$("<h2/>", {text: toTitleCase(position.title)})
+				),
+			$("<div/>", {id:"pos-detail-irffg", text:toTitleCase(position.irffg) + " - Level " + position.level}),
+			$("<div/>"),
+			$("<div/>", {id:"pos-det-req"}).append(
+				$("<h3/>", {text: "Requirements:"}),
+				$("<div/>", {class:"pos-det-req myDropzone-requirement", id:"pos-det-req-" + id})
+				),
+			$("<div/>", {id:"pos-det-learn"}).append(
+				$("<h3/>", {text: "Learnings:"})
+				),
+			$("<div/>", {id: "pos-det-know"}).append(
+				$("<h3/>", {text:"Knowledge:"})
+				),
+			$("<div/>", {class: "myDropzone-position", id: "pos-det-nextPos-" + id}).append(
+				$("<h3/>", {text:"Next positions:"})
+				),
+			$("<div/>", {id:"pos-det-skillcomps"}).append(
+				$("<div/>", {class:"pos-det-skills myDropzone-skill", id:"pos-det-skills"}).append(
+					$("<h3/>", {text:"Technical Skills:"}),
+					$("<div/>", {id: "pos-det-skills-accordion"})
+					),
+				$("<div/>", {class:"pos-det-comps myDropzone-skill", id:"pos-det-comps"}).append(
+					$("<h3/>", {text:"Competencies:"}),
+					$("<div/>", {id:"pos-det-comps-accordion"})
+					)
+				)
+			);
+
+		//
+		// ################ check for requirements and get the name for each
+		//
+		if (position.requirements.length > 0) {
+			console.log("position.requirements.length", position.requirements.length);
+
+			for (var i = 0; i < position.requirements.length; i++) {
+				var thisReq = position.requirements[i];
+				$("#pos-det-req-" + id).append(
+					$("<div/>", {id:"pos-det-req-months-mission-" + thisReq.months + thisReq.missions, text: thisReq.months + " months or/and " + thisReq.missions + " missions in these positions:"}).append(
+						$("<ul/>"))
+						);
+				// "<div id='pos-det-req-months-mission-'" + thisReq.months + thisReq.missions + ">" + thisReq.months + " months or/and " + thisReq.missions + " missions in these positions: <ul></ul></div>");
+
+				for (var j = 0; j < thisReq.positions.length; j++) {
+					var thisPos = thisReq.positions[j];
+					$("#pos-det-req-" + id + " ul").append(
+						$("<li/>", {text:toTitleCase(thisPos.title)})
+						);
+				}
+			}
+		} else {
+			$("#pos-det-req-" + id).append(
+				$("<div/>", {class:"pos-det-req-item", text:"no requirements"})
+				);
+		}
+
+
+
+		//
+		// ################ create div for learning
+		//
+		$("#pos-det-learn").append(
+			$("<div/>", {class:"pos-det-learn myDropzone-learning", id:"pos-det-learn-" + id}));
+
+		if (position.learnings.length > 0) {
+			position.learnings.forEach(function(element) {
+				// $("#pos-det-learn-"+id).append("<div class='pos-det-learn-item'>Taking part in the "+element.learning+" "+element.timing+" this position is "+ element.mandatory+"</div>");
+				$("#pos-det-learn-" + id).append(
+					$("<div/>", {class:"pos-det-learn-item", text:element.learning})
+					);
+			});
+
+		} else {
+			$("#pos-det-learn-" + id).append(
+				$("<div/>", {class:"pos-det-learn-item", text:"No training necessary."})
+				);
+		}
+
+		//
+		// ################ create div for nextpositions
+		//
+		$("#pos-det-nextPos-" + id).append(
+			$("<div/>", {id:"pos-det-nextPos-accordion", class:"myDropzone-position"})
+			);
+
+		if (position.nextPositions.length > 0) {
+
+			// cycling through all next positions
+			for (var i = 0; i < position.nextPositions.length; i++) {
+
+				var thisNextPosition = position.nextPositions[i];
+				console.log("thisNextPosition", thisNextPosition);
+
+				// create the div for the next position
+				$("#pos-det-nextPos-accordion").append(
+					$("<h3/>", {text:toTitleCase(thisNextPosition.title)}),
+					$("<div/>", {id:"pos-det-nextPos-accordion-" + thisNextPosition._id})
+					);
+
+				// calculate the skilldelta
+				// var skillDelta = await calculateSkillDelta (position, thisNextPosition._id);
+
+				var skillDelta = new Promise(function(resolve, reject) {
+
+					return calculateSkillDelta(position, thisNextPosition._id);
+
+				});
+
+				skillDelta.then(function(skillDelta) {
+					console.log("awaited skilldelta", skillDelta);
+				}, function(err) {
+					console.log(err);
+				});
+
+				// when you have the skillDelta
+
+				var sk = skillDelta;
+
+				// cycle through all elements of the skilldelta
+				for (var j = 0; j < sk.length; j++) {
+					var thisSkillDelta = sk[j];
+					console.log("SK", thisSkillDelta);
+
+					// create the div for the skillDelta
+					$("#pos-det-nextPos-accordion-" + thisNextPosition._id).append(
+						$("<h5/>", {text:thisSkillDelta.name + ": going from " + thisSkillDelta.from + " to: " + thisSkillDelta.to}),
+						$("<div/>", {id:"pos-det-nextPos-accordion-" + thisSkillDelta._id}).append(
+							$("<ul/>"))
+						);
+
+					// cycle throught the added descriptions
+					for (var k = 0; k < thisSkillDelta.adding.length; k++) {
+						var descr = thisSkillDelta.adding[k];
+						$("#pos-det-nextPos-accordion-" + thisSkillDelta._id + " ul").append(
+							$("<li", {text:descr.description})
+							);
+					}
+				}
+
+				$(document).ajaxStop(function() {
+					$("#pos-det-nextPos-accordion-" + thisNextPosition._id).accordion({
+						collapsible: true,
+						heightStyle: "content",
+						header: "h5",
+						active: false
+					});
+				});
+			}
+			$(document).ajaxStop(function() {
+				$("#pos-det-nextPos-accordion").accordion({
+					collapsible: true,
+					heightStyle: "content",
+					header: "h3",
+					active: false
+				});
+			});
+		}
+
+		//   if(position.nextPositions.length > 0) {
+
+		//     async.each(position.nextPositions, async function (element) {
+
+		//       $("#pos-det-nextPos-accordion").append("<h3>"+toTitleCase(element.title)+"</h3><div id='pos-det-nextPos-accordion-"+element._id+"'></div>");
+
+		//       var skillDelta = calculateSkillDelta (position, element._id);
+		//       skillDelta.then( async function (sk) {
+		//         console.log("Skilldelta that is being processed", skillDelta);
+
+		//         async.each(sk, async function (ski) {
+		//           $("#pos-det-nextPos-accordion-"+element._id).append("<h5>"+ski.skill+": going from "+ski.from+" to: "+ski.to+"</h5><div id='pos-det-nextPos-accordion-"+ski._id+"'><ul></ul></div>");
+
+		//           // async.each( ski.adding, async function (descr) {
+		//           //   $("#pos-det-nextPos-accordion-"+ski._id+" ul").append("<li>"+descr.description+"</li>");
+		//           // })
+		//         })
+		//       })
+
+		//       $( document ).ajaxStop( function() 
+		// $("#pos-det-nextPos-accordion-"+element._id).accordion({
+		//           collapsible: true,
+		//           heightStyle: "content",
+		//           header: "h5",
+		//           active: false
+		//         }); 
+		//       })
+		//     }, function (error) {
+		//       console.log(error);
+		//     })
+
+		//   $( document ).ajaxStop( function() {
+		//     $("#pos-det-nextPos-accordion").accordion({
+		//       collapsible: true,
+		//       heightStyle: "content",
+		//       header: "h3",
+		//       active: false
+		//     }); 
+		//   }) 
+		// }
+		// create div for technical skills
+
+		if (position.skills.length > 0) {
+
+			mySkills = position.skills;
+			console.log("MySkills:", mySkills);
+
+
+			mySkills.forEach(function(skillsData) {
+				// console.log("Skillsdata", skillsData)
+				console.log("Inherited", skillsData.inherited);
+
+				$("#pos-det-skills-accordion").append(
+					$("<h4/>", {text:toTitleCase(skillsData.name) + " " + skillsData.level}),
+					$("<div/>", {class:"pos-det-skills-accordion", id:"pos-det-skills-accordion-" + skillsData._id})
+					);
+				// "<h4>" + toTitleCase(skillsData.name) + " " + skillsData.level + "</H4><div class='pos-det-skills-accordion' id='pos-det-skills-accordion-" + skillsData._id + "'></div>");
+
+				skillsData.descriptions.forEach(function(descrData) {
+					$("#pos-det-skills-accordion-" + skillsData._id).append(
+						$("<h5/>", {text:descrData.description}),
+						$("<div/>", {class:"pos-det-skills-accordion-description", id:"pos-det-skills-accordion-" + skillsData._id + "-" + descrData._id}).append(
+							$("<ul>"))
+						);
+					
+					descrData.actions.forEach(function(actData) {
+						$("#pos-det-skills-accordion-" + skillsData._id + "-" + descrData._id + " ul").append(
+							$("<li/>", {class:"draggable action", id:descrData._id + "-" + actData._id + "-" + skillsData._id, text:actData.action}));
+						// "<li class='draggable action' id='" + descrData._id + "-" + actData._id + "-" + skillsData._id + "'>" + actData.action + "</li>");
+					});
+
+					$(document).ajaxStop(function() {
+						$("#pos-det-skills-accordion-" + skillsData._id).accordion({
+							collapsible: true,
+							heightStyle: "content",
+							header: "h5",
+							active: false
+						});
+						$(".draggable").draggable({
+							revert: true,
+							helper: "clone"
+						});
+					});
+				});
+
+				// if there are inherited skkills
+				// create a div, fill it and then in the end...
+				if (skillsData.inherited.length > 0) {
+					$("#pos-det-skills-accordion-" + skillsData._id).append(
+						$("<div/>", {text:"---- inherited skills ----"}),
+						$("<div/>", {class:"pos-det-skills-accordion-description", id:"pos-det-skills-accordion-" + skillsData._id + "-inherited"})
+						);
+
+					skillsData.inherited.forEach(function(inhDescrData) {
+						$("#pos-det-skills-accordion-" + skillsData._id + "-inherited").append(
+							$("<h5/>", {text:inhDescrData.description}),
+							$("<div/>", {class:"pos-det-skills-accordion-description", id:"pos-det-skills-accordion-" + skillsData._id + "-inherited-" + inhDescrData._id}).append(
+								$("<ul/>")
+								)
+							);
+
+						inhDescrData.actions.forEach(function(inhActData) {
+							$("#pos-det-skills-accordion-" + skillsData._id + "-inherited-" + inhDescrData._id + " ul").append(
+								$("<li/>", {text:inhActData.action})
+								);
+						});
+
+						$(document).ajaxStop(function() {
+							$("#pos-det-skills-accordion-" + skillsData._id).accordion({
+								collapsible: true,
+								heightStyle: "content",
+								header: "h5",
+								active: false
+							});
+							$("#pos-det-skills-accordion-" + skillsData._id).accordion({
+								collapsible: true,
+								heightStyle: "content",
+								header: "h6",
+								active: false
+							});
+						});
+					});
+				}
+			});
+		}
+
+		if (position.competencies.length > 0) {
+
+			myComps = position.competencies;
+			console.log("competencies:", myComps);
+
+
+			myComps.forEach(function(compsData) {
+				// console.log("compsData", compsData)
+
+				$("#pos-det-comps-accordion").append(
+					$("<h4/>", {text:toTitleCase(compsData.name) + " " + compsData.level}),
+					$("<div/>", {class:"pos-det-comps-accordion", id:"pos-det-comps-accordion-" + compsData._id}).append(
+						$("<ul/>"))
+					);
+				
+				compsData.descriptions.forEach(function(descrData) {
+					$("#pos-det-comps-accordion-" + compsData._id + " ul").append(
+						$("<li/>", {text:descrData.description})
+						);
+
+
+					// $( document ).ajaxStop( function() {
+					//   $("#pos-det-comps-accordion-"+compsData._id).accordion({
+					//     collapsible: true,
+					//     heightStyle: "content",
+					//     header: "h5"   
+					//   }); 
+					// })
+				});
+			});
+		}
+
+		$(document).ajaxStop(function() {
+			$("#pos-det-skills-accordion").accordion({
+				collapsible: true,
+				heightStyle: "content",
+				active: false
+			});
+
+			$("#pos-det-comps-accordion").accordion({
+				collapsible: true,
+				heightStyle: "content",
+				active: false
+			});
+
+		});
+
+		// do all the updating for the dropzones
+
+		$(function() {
+			$(".myDropzone-learning").droppable({
+				accept: ".learning",
+				classes: {
+					"ui-droppable-active": "ui-state-active",
+					"ui-droppable-hover": "ui-state-hover"
+				},
+				drop: function(event, ui) {
+					console.log("Dropped something?>");
+					var droppedLearning = $(ui.draggable).attr("id");
+					var thisPosition = $(this).attr("id").substring(14, 38);
+					// addLearningForm(droppedLearning, thisPosition);
+
+					console.log("Just dropped " + droppedLearning + " on ", thisPosition);
+					$.ajax({
+						url: "/position/".concat(thisPosition),
+						dataType: "json",
+						type: "patch",
+						contentType: "application/json",
+						data: JSON.stringify({
+							learnings: {
+								"learning": droppedLearning,
+								"mandatory": "mandatory",
+								"timing": "before"
+							}
+						}),
+						success: function(data, textStatus, jQxhr) {
+							updateDetails(thisPosition);
+						},
+						error: function(jqXhr, textStatus, errorThrown) {
+							console.log(errorThrown);
+						}
+					});
+
+				}
+			});
+
+
+			$(".myDropzone-action").droppable({
+				accept: ".action",
+				classes: {
+					"ui-droppable-active": "ui-state-active",
+					"ui-droppable-hover": "ui-state-hover"
+				},
+				drop: function(event, ui) {
+					console.log("Dropped something?>");
+					var fullID = $(ui.draggable).attr("id");
+					console.log("fullID", fullID);
+					var descriptionID = fullID.substring(0, 24);
+					var actionID = fullID.substring(25, 49);
+					var skillCompID = fullID.substring(50, 74);
+					console.log("SkillCompId", skillCompID);
+
+					var action = "";
+					var description = "";
+					var affectedPositions = [];
+
+					$.getJSON('/description/' + descriptionID, function(thisDescription) {
+
+						description = thisDescription;
+						console.log("Description inner", description);
+
+						$.getJSON('/action/' + actionID, function(thisAction) {
+
+							action = thisAction;
+							console.log("action inner", action);
+
+							$.getJSON("/positionsforskill/" + skillCompID, function(positions) {
+								positions = positions.positions;
+								for (var i = 0; i < positions.length; i++) {
+									console.log("Positions i", positions[i]);
+									affectedPositions.push(positions[i].title);
+								}
+								console.log("affectedPositions", affectedPositions);
+								alertBoxActionRemoval(action.action, description.description, affectedPositions);
+							});
+						});
+					});
+				}
+			});
+
+			$(".myDropzone-requirement").droppable({
+				accept: ".position",
+				classes: {
+					"ui-droppable-hover": "ui-state-hover"
+				},
+				drop: function(event, ui) {
+					console.log("Dropped something?>");
+				}
+			});
+
+			$(".myDropzone-position").droppable({
+				accept: ".position",
+				classes: {
+					"ui-droppable-active": "ui-state-active",
+					"ui-droppable-hover": "ui-state-hover"
+				},
+				drop: function(event, ui) {
+					console.log("Dropped a new next position");
+					var nextPosition = $(ui.draggable).attr("id");
+					var thisPosition = $(this).attr("id").substring(16, 40);
+					// addLearningForm(droppedLearning, thisPosition);
+
+					console.log("Just dropped " + nextPosition + " on ", thisPosition);
+
+					$.ajax({
+						url: "/position/".concat(thisPosition),
+						dataType: "json",
+						type: "patch",
+						contentType: "application/json",
+						data: JSON.stringify({
+							"nextPositions": nextPosition
+						}),
+						success: function(data, textStatus, jQxhr) {
+							updateDetails(thisPosition);
+						},
+						error: function(jqXhr, textStatus, errorThrown) {
+							console.log(errorThrown);
+						}
+					});
+				}
+			});
+
+			$(".myDropzone-knowledge").droppable({
+				accept: ".knowledge",
+				classes: {
+					"ui-droppable-active": "ui-state-active",
+					"ui-droppable-hover": "ui-state-hover"
+				},
+				drop: function(event, ui) {
+					console.log("Dropped something?>");
+				}
+			});
+
+			$(".myDropzone-skill").droppable({
+				accept: ".skillcomp",
+				classes: {
+					"ui-droppable-active": "ui-state-active",
+					"ui-droppable-hover": "ui-state-hover"
+				},
+				drop: function(event, ui) {
+					console.log("Dropped something?>");
+					var droppedSkill = $(ui.draggable).attr("id");
+					console.log("Just dropped: ", droppedSkill);
+				}
+			});
+
+			$(".myDropzone-comp").droppable({
+				accept: ".skillcomp",
+				classes: {
+					"ui-droppable-active": "ui-state-active",
+					"ui-droppable-hover": "ui-state-hover"
+				},
+				drop: function(event, ui) {
+					console.log("Dropped something?>");
+				}
+			});
+		});
+	}
+
+	function getPositionDetails(position) {
+		$("body").children().hide();
+		$("body").prepend("<div class='container position-details-container' id='detailsOf-" + position + "'>&nbsp;</div>");
+		$("#detailsOf-" + position).css("position", "fixed");
+		$("#detailsOf-" + position).append("<button type='button' class='btn btn-primary'>back to the overview</button>");
+		$("#detailsOf-" + position).append("<div class='row' id='contentOf-" + position + "'></div>");
+
+		var thisPosition = "";
+		$.getJSON("/position/" + position, function(data) {
+
+			// everything that you want to have done, ut it here
+			thisPosition = data.positions;
+			thisTitle = thisPosition.title;
+			$("#contentOf-" + position).append("<h1>" + toTitleCase(thisPosition.title) + "</h1>");
+		});
+	}
+
+	// common functions
+	function compareLevels(a, b) {
+		if (a.level > b.level)
+			return -1;
+		if (a.level < b.level)
+			return 1;
+		return 0;
+	}
+
+	function sortSkillComps(a, b) {
+		if (a.name == b.name && a.level > b.level) {
+			return 1;
+		}
+		if (a.name == b.name && a.level < b.level) {
+			return -1;
+		}
+		if (a.name > b.name) {
+			return 1;
+		}
+		if (a.name < b.name) {
+			return -1;
+		}
+
+	}
+
+	async function calculateSkillDelta(currPos, nextPos) {
+		var skillDelta = [];
+		// console.log("currPos", currPos)
+		// console.log("###############################");
+
+		try {
+			// get full-position fr both positions
+			var currentPosition = currPos;
+			var nextPosition = await $.getJSON("/full-position/" + nextPos);
+
+			var currSkills = currentPosition.skills;
+			var nextSkills = nextPosition.position.skills;
+			var tempNextSkill = nextPosition.position.skills;
+			// console.log("Going from "+ currentPosition.title + " to "+ nextPosition.position.title);
+			// console.log("#!#!#!#!#!##! the whole current skillset:", currSkills);
+			// console.log("#!#!#!#!#!##! the whole next skillset:", nextSkills);
+
+
+
+			// for each skill in the current Position, check if the skill is present in the next position
+			for (var i = 0; i < currSkills.length; i++) {
+				var currSkill = currSkills[i];
+				for (var j = 0; j < nextSkills.length; j++) {
+					var nextSkill = nextSkills[j];
+					var isPresent = false;
+
+					if (currSkill.name != nextSkill.name) {
+						for (var i = 0; i < currSkills.length; i++) {
+
+							if (currSkills[i].name == nextSkill.name) {
+								isPresent = true;
+								// console.log("found the skill in the current Job")
+							}
+						}
+						if (!isPresent) {
+							var thisSkill = {
+								_id: currSkill._id + nextSkill._id,
+								skill: nextSkill.name,
+								from: 0,
+								to: nextSkill.level,
+								adding: nextSkill.descriptions
+							};
+						}
+					}
+					if (currSkill.name == nextSkill.name) {
+						// console.log("tempNextSkills before splice", tempNextSkill);
+						// console.log("J is", j);
+						tempNextSkill.splice(j, 1);
+						// console.log("tempNextSkills after splice", tempNextSkill);
+
+						if (currSkill.level < nextSkill.level) {
+							var thisSkill = {
+								_id: currSkill._id + nextSkill._id,
+								skill: currSkill.name,
+								from: currSkill.level,
+								to: nextSkill.level,
+								adding: nextSkill.descriptions
+							};
+						}
+						// console.log("### currSkill.name == nextSkill.name");
+						skillDelta.push(thisSkill);
+						// console.log("### skillDelta:", skillDelta.length, skillDelta);
+					}
+				}
+			}
+
+			for (var i = 0; i < tempNextSkill.length; i++) {
+				var newSkill = tempNextSkill[i];
+				var thisNewSkill = {
+					_id: currSkill._id + nextSkill._id,
+					skill: nextSkill.name,
+					from: 0,
+					to: nextSkill.level,
+					adding: nextSkill.descriptions
+				};
+				await skillDelta.push(thisNewSkill);
+			}
+
+		} catch (e) {
+			throw (e);
+		}
+
+		// console.log("SkillDelta: ", skillDelta);
+		// console.log("uniq Delta", uniqueDelta);
+
+		return skillDelta;
+		// if the skill is present, compare the levels 
+		// if the level-delta is greater 0, display the new descriptions
+	}
 
 
 
 
-        $("#" + thisId).append("<div class='position-title' id='" + thisId + "-title-box'></div>");
-        $("#" + thisId+ "-title-box").html(toTitleCase(data.positions[i].title) );
-        $("#" + thisId).append("<div class='position-skill-box' id='" + thisId + "-skill-box'></div>");
-        $("#" + thisId).append("<div class='position-comp-box' id='" + thisId + "-comp-box'></div>");
-        // $("#" + thisId).prepend("<div class='position-details' id='detail-"+ thisId +"'>details</div>");
+	function alertBoxActionRemoval(action, description, positions) {
+		if (confirm("you are about to remove '" + action.action + "' from '" + description.description + "'. This will affect these positions: " + positions) == true) {
+			console.log("remove that action");
+			$.getJSON("/removeactionfromdescription/" + action._id + "/" + description._id, function(description) {
+				console.log("Description updated:", description);
+			});
 
-        // get a nice box to click on for details
-        $("#" + thisId).prepend("<div class='info' id='info-" + thisId+ "'></div>");
-        $("#info-"+thisId).append("info");
-        
-
-
-
-        if($("#" + thisLevel + "-positions").children().length > 3) {
-          var height = Math.ceil($("#" + thisLevel + "-positions").children().length / 3) * 120;
-            $("#"+ thisLevel).css("height", height);
-        }
-    }
-}, "json");
+		} else {
+			console.log("rather not");
+		}
+	}
 
 
-$(document).ajaxStop( function () {
-    $( function() {
-        $( ".subtractor" ).draggable({ revert: "valid" });
-     
-        $( ".position-box" ).droppable({
-          classes: {
-            "ui-droppable-active": "ui-state-active",
-            "ui-droppable-hover": "ui-state-hover"
-          },
-          drop: function( event, ui ) {
-            // do some ajax to add the dropped id to the dropping id as nextPositions
-            var nextPos = $(this).attr("id");             
-            var currPos = $(ui.draggable).attr("id").substr(4, 25);
-            if(nextPos!=currPos) {
-                $.ajax({
-                  url: '/position/'.concat(currPos),
-                  dataType: 'json',
-                  type: 'patch',
-                  contentType: 'application/json',
-                  data: JSON.stringify( { "nextPositions": nextPos} ),
-                  success: function( data, textStatus, jQxhr ){
-                      $("#" + nextPos).toggle( "highlight" );
-                      $("#" + nextPos).toggle( "highlight" );
-                  },
-                  error: function( jqXhr, textStatus, errorThrown ){
-                      console.log( errorThrown );
-                  }
-              });
-            }
-          }
-      });
-
-$( "#pos-det-skills-accordion").accordion({
-  collapsible: true,
-  heightStyle: "content"
-  
-});   
-
-    });
 });
 
-$(document).ajaxStop( function () {
-  $(".info").click(
-    function () {
-      var thisPosition = $(this).attr("id");
-      $(body).prepend("<div class='info-canvas' id='info-canvas-"+thisPosition+"'></div>");
-      $("#info-canvas-"+thisPosition).css("width", "95%");
-      $("#info-canvas-"+thisPosition).css("height", "95%");
-      $("#info-canvas-"+thisPosition).css("background-color", "white");
 
-    }
-  )
+// ###################################################
+
+$(".navLearn").click(function () {
+	// // change the navigation bar
+	prepPage("navLearn");
+
+	$("#toolbar").prepend(
+		$("<div/>", {id:"accordion"}).append(
+			$("<h3/>", {text:"Actions"}),
+			$("<div/>", {id:"accordion-actions"}).append(
+				$("<ul/>")
+				),
+			$("<h3/>", {text:"Positions"}),
+			$("<div/>", {id:"accordion-positions"}).append(
+				$("<ul/>")
+				)
+			)
+		);
+
+
+	// get all learnings into the sidebar
+	$.getJSON("/learnings", function (data) {
+		"use strict";
+		data.learnings.forEach(function (element) {
+			var thisId = element._id;
+
+			// $("#learnings-sidebar").append("<div class='learning-box' id='" + thisId + "'></div>");
+			$("#sidebar").append(
+				$("<div/>", {class:"learning-box", id: thisId}).append(
+					$("<a>", {href:"#", text: element.name}))
+				);
+		});
+	});
+
+	// get all actions and fill them in the toolbar
+	$.getJSON("/actions", function (data) {
+
+		var actions = data.actions;
+		actions.forEach(function(element) {
+			$("#accordion-actions ul").append(
+				$("<li/>", {class:"draggable ui-draggable ui-draggable-handle action", id:element._id, text:element.action})
+				);
+		});
+	});
+
+	// get all positions  and fill them in the toolbar
+	$.getJSON("/positions", function (data) {
+
+		var positions = data.positions;
+		positions.forEach(function (element) {
+			$("#accordion-positions ul").append(
+				$("<li/>", {class: "draggable ui-draggable ui-draggable-handle position", id:element._id, text:toTitleCase(element.title)})
+				);
+		});
+	});
+
+	// to be done, when all ajax requests are finished...
+	$(document).ajaxStop(function () {
+
+		// clicking on one of the learnings in the sidebar
+		$(".learning-box").click(function () {
+			var id = $(this).attr("id");
+			console.log("ID", id);
+			
+
+			// check what was clicked
+			if (id == "newLearning") {		// if it's the NEW button
+				createNewLearning();
+			} else {
+				console.log("Clicked a learning box");
+				updateDetails(id);		// fill the detials
+			}
+		});
+
+		$(function() {
+			$(".draggable").draggable({
+				revert: true,
+				helper: "clone"
+			});
+
+			$( "#accordion" ).accordion({
+				collapsible: true,
+				heightStyle: "content",
+				active: false
+			});
+
+		});
+
+		
+	});
+
+	function updateDetails (id) {
+		// get the full info on this learning
+		$.getJSON("/full-learning/" + id, function (data) {
+
+			var thisLearning = data.learning;
+			console.log("data: ", data);
+
+			// empty the learning details
+			$("#details").empty();
+
+			//create the div for everything
+			$("#details").append(
+				$("<div/>", {class:"learning-details-content", id:"det-" + id}). append(
+					$("<div/>", {class:"learning-title", id:"det-" + id + "-name"}). append(
+						$("<h2/>", {text:thisLearning.name})
+						),
+					$("<div/>", {class:"learning-provider", id:"det-" + id + "-provider", text:"Provided by " + thisLearning.provider}),
+					$("<div/>", {class:"learning-length", id:"det-" + id + "-length"}),
+					$("<div/>", {class:"learning-methodology", id:"det-" + id + "-methodology", text:"Methodology: " + thisLearning.methodology}),
+					$("<div/>", {class:"learning-remarks", id:"det-" + id + "-remarks", text:"Comment: " + thisLearning.remarks}),
+					$("<div/>", {class:"learning-periodity", id:"det-" + id + "-periodity", text:"Periodity: " + thisLearning.periodity}),
+					$("<div/>", {class:"learning-modules", id:"det-" + id + "-modules", class: "myDropzone-module"}).append(
+						$("<h3/>", { text:"Modules: "})
+						)
+					)
+				);
+
+			// for all non-OCA learning offers, make the provider red
+			if(thisLearning.provider != "OCA") {
+				$(".learning-provider").css("color", "red");
+			}
+
+			$("#det-" + id +"-modules").append(
+				$("<div/>", {id:"learning-module-accordion"}));
+
+			// variable to hold the lenth, calculated rom all module durations
+			var learningLength = 0;
+
+			// create the frame for all modules
+			for (var i = 0; i < thisLearning.modules.length; i++) {
+
+				var thisModule = thisLearning.modules[i];
+
+				// add the duration of this module to the learning length
+				learningLength += thisModule.duration;
+
+					$("#learning-module-accordion").append(
+						$("<h3/>", {text:thisModule.name}),
+						$("<div/>", {id:"mod-"+thisModule._id}).append(
+							$("<div/>", {id:"mod-"+thisModule._id+"-obj"}).append(
+								$("<h7/>",{text:"Objectives:"}),
+								$("<ul/>")
+								),
+							$("<div/>", {id:"mod-"+thisModule._id+"-act", class:"myDropzone-action"}).append(
+								$("<h7/>", {text:"Actions:"}),
+								$("<ul/>")
+								),
+							$("<div />", {id:"mod-"+thisModule._id+"-dur"}).append(
+								$("<h7/>", {text: "Length: "})
+								)
+							)
+						);
+
+				// filling the objectives into the UL
+				for (var j = 0; j < thisModule.objectives.length; j++) {
+					var thisObjective = thisModule.objectives[j];
+					$("#mod-"+thisModule._id+"-obj ul").append(
+						$("<li/>", {class:"draggable objective", id:"obj-"+thisObjective._id, text:thisObjective})
+						);
+				}
+
+				// filling the actions into the UL
+				for (var k = 0; k < thisModule.actions.length; k++) {
+					var thisAction = thisModule.actions[k];
+					$("#mod-"+thisModule._id+"-act ul").append(
+						$("<li/>", {class:"draggable mod-action", id:"act-"+thisAction._id, text:thisAction.action})
+						);
+				}
+
+				$("#mod-"+thisModule._id+"-dur").append(thisModule.duration + " minutes");
+
+			}
+			if(thisLearning.length!=null) {
+				$(".learning-length").append(thisLearning.length);
+			} else {
+				if(learningLength < 480) {
+					$(".learning-length").append("approximately " + parseInt(learningLength/60) + "h " + learningLength%60 + " minutes");
+				} else {
+					$(".learning-length").append("approximately " + parseInt(learningLength/480) + " day(s) ");
+				}
+			}
+			
+			
+
+			// after all details are filled, do some jQuery UI stuff
+			$( function() {
+
+				// activte the accordion
+				$( "#learning-module-accordion" ).accordion({
+				collapsible: true,
+				heightStyle: "content",
+				active: false
+				});
+
+				// make the items draggabel
+				// $(".draggable").draggable({
+				// 	revert: true,
+				// 	helper: "clone"
+				// });
+
+				// prepare the dropzone to drop the actions there
+				$(".myDropzone-action").droppable({
+					accept: ".action",
+					classes: {
+						"ui-droppable-active": "ui-state-active",
+						"ui-droppable-hover": "ui-state-hover"
+					},
+					drop: function(event, ui) {
+						console.log("Dropped something?>");
+
+						// get the id of the dropped action and the module
+						var droppedAction = $(ui.draggable).attr("id");
+						var actionText = $(ui.draggable).text();
+						var module = $(this).attr("id").substring(4, 28);
+
+						// AJAX patching of the module
+						$.ajax({
+							url: "/module/".concat(module),
+							dataType: "json",
+							type: "patch",
+							contentType: "application/json",
+							data: JSON.stringify({
+								actions: [droppedAction]
+							}),
+							success: function(data, textStatus, jQxhr) {
+								// when successfull, update the page!
+								// updateDetails(thisLearning._id);
+								$("#mod-"+module+"-act ul").append(
+									$("<li/>", {class:"draggable mod-action", id:"act-"+droppedAction, text:actionText})
+									);
+							},
+							error: function(jqXhr, textStatus, errorThrown) {
+								console.log(errorThrown);
+							}
+						});
+					}
+				});
+
+				$(".myDropzone-module").droppable({
+					accept: ".module",
+					classes: {
+						"ui-droppable-active": "ui-state-active",
+						"ui-droppable-hover": "ui-state-hover"
+					},
+					drop: function(event, ui) {
+						console.log("Dropped something?>");
+
+						// get the id of the dropped action and the module
+						var droppedModule = $(ui.draggable).attr("id");
+						var learning = $(this).attr("id").substring(4, 28);
+
+						// AJAX patching of the module
+						$.ajax({
+							url: "/learning/".concat(learning),
+							dataType: "json",
+							type: "patch",
+							contentType: "application/json",
+							data: JSON.stringify({
+								actions: [droppedAction]
+							}),
+							success: function(data, textStatus, jQxhr) {
+								// when successfull, update the page!
+								updateDetails(thisLearning._id);
+							},
+							error: function(jqXhr, textStatus, errorThrown) {
+								console.log(errorThrown);
+							}
+						});
+					}
+				});
+
+			});
+		});
+	}
 });
 
+// ##################################################
 
+$(".navGap").click(function () {
 
+	prepPage("navGap");
 
-$( document ).ajaxStop(function() {
+	// get all learning
+	$.getJSON("/learning-gap", function (data) {
 
-  $(".info").click(
-    function () {
-      var thisPosition = $(this).attr("id");
-      $(body).prepend("<div class='info-canvas' id='info-canvas-"+thisPosition+"'></div>");
-      $("#info-canvas-"+thisPosition).css("width", "95%");
-      $("#info-canvas-"+thisPosition).css("height", "95%");
-      $("#info-canvas-"+thisPosition).css("background-color", "white");
+		$("#details").append(
+			$("<h2/>", {text:"supply actions not covered by learning offers"}),
+			$("<div/>", {id:"uncoveredActions-accordion"}).append(
+				$("<ul/>")
+				)
+			);
 
-    }
-  )
-  $(".position-box").click(
+		// loop through all the actions not covered by learnig offers
+		data.uncoveredActions.forEach(function (element) {
+			var thisId = element._id;
+			var thisAction = element.action;
 
-      function() {
-        var currPos = $(this).attr("id");
-        var coordCurrPos = $(this).position();
-        var postionTitle = $("#" + currPos + "-title-box").text();
-        coordCurrPos.left = coordCurrPos.left + $(this).width()/2;
+			// check if we already have a heading for this SKILL, if no, create one, otherwise
+			if ( $( ".uncoveredAction-skill-" + camelize(element.skill)).length>0) {
+				$("#uncoveredAction-skill-" + camelize(element.skill) +"-ul").append(
+					$("<li/>", {text: element.action})
+					);
 
-        $(".position-box").css("background-color", "white");
-        $(this).css("background-color", "green");
+				// append 
+			} else {
+				$("#uncoveredActions-accordion").append(
+					$("<h7/>", {id:"uncoveredAction-skill-" + camelize(element.skill), class:"uncoveredAction-skill-" + camelize(element.skill), text:toTitleCase(element.skill)}),
+					$("<div/>").append(
+						$("<ul/>", {id:"uncoveredAction-skill-" + camelize(element.skill)+"-ul"}).append(
+							$("<li/>", {text: element.action}))
+						)
+				);
+			}
+		});
 
-        if(isClicked != currPos) {
-          isClicked = currPos;
-          // if the position-skillcomp-box is already visible, get rid of it
-          if ($("#position-skillcomp-overview").is(":visible")) {
-            $("#position-skillcomp-overview").hide(); 
-          }
-          $(".canvas-div").remove();
+		$("#details").append(
+			$("<h2/>", {text:"supply actions that are already covered by learning offers"}),
+			$("<div/>", {id:"coveredActions-accordion"}).append(
+				$("<ul/>")
+				)
+			);
 
-          // show the skill comp box
-          $("#position-skillcomp-overview").empty();
-          $("#position-skillcomp-overview").show();
-          $("#position-skillcomp-overview").prepend("<div class='position-title-sc'>"+postionTitle+"</div>");
-          
+		// loop through all actions that are covered by a learning offer
+		data.coveredActionsAndModules.forEach(function (element) {
 
-          // get  all info for this position
-          $.ajax({
-              url: '/positions/'+ currPos,
-              type: 'get',
-              dataType: 'json',// mongod is expecting the parameter name to be called "jsonp"
-              success: function (data) {
-                  // when you have the details, get the next positions and save them to a local variable
-                  var nextPositions = data.positions.nextPositions;
-                  var skills = data.positions.skills;
-                  var comps = data.positions.competencies;
+			// check if we already have a heading for this SKILL, if no, create one, otherwise
+			if ( $( ".coveredAction-skill-" + camelize(element.skill)).length>0) {
+				$("#coveredAction-skill-" + camelize(element.skill) +"-ul").append(
+					$("<li/>", {text: element.action + " ["+element.learning +" - "+ element.module+"]"})
+					);
 
-                  // make nice boxes for skills and comsp
-                    $("#position-skillcomp-overview").append("<div class='pos-skill-container-50 col-xs-6' id='skills-"+ currPos+"'>&nbsp;</div>");
-                    var mySkills = 0;
-                    for (var i = 0; i < skills.length; i++) {
-                      var skill = skills[i].skill;
-                      var level = skills[i].level;
-                      
-                      // go through all skills and create a div for it. widht should be calculated by number of skills and the height should be according to the stkill level - WAREhousing 1 =10px
-                      if (level>0) {
-                        mySkills++;
-                        $("#skills-" + currPos).append("<div class='pos-single-skill-box height-"+level+" skill-"+camelize(skill)+"' id='"+currPos+"-"+camelize(skill)+"-level-"+level+"'>"+skill+"</div>");
-                      }                                     
-                    }
+				// append 
+			} else {
+				$("#coveredActions-accordion").append(
+					$("<h7/>", {id:"coveredAction-skill-" + camelize(element.skill), class:"coveredAction-skill-" + camelize(element.skill), text:toTitleCase(element.skill)}),
+					$("<div/>").append(
+						$("<ul/>", {id:"coveredAction-skill-" + camelize(element.skill)+"-ul"}).append(
+							$("<li/>", {text: element.action + " ["+element.learning +" - "+ element.module+"]"}))
+						)
+				);
+			}
+		});
 
-                      for(var np = 0; np< nextPositions.length; np++){
+		$( function() {
+			// activte the accordion for unvocered actions
+			$( "#uncoveredActions-accordion" ).accordion({
+			collapsible: true,
+			heightStyle: "content",
+			header: "h7",
+			active: false
+			});
 
-                        var nextPos = nextPositions[np];
-                        drawLine(currPos, nextPos);
+			// activte the accordion for unvocered actions
+			$( "#coveredActions-accordion" ).accordion({
+			collapsible: true,
+			heightStyle: "content",
+			header: "h7",
+			active: false
+			});
+		});
 
-
-                        var skillDelta= [];
-                        // get the skills for each job:
-                        $.getJSON( "/positions/" + nextPos, function(data) {
-                          var newSkills = data.positions.skills;
-                          console.log("newskill: " + newSkills);
-
-                          // go through the newSkills and 
-                          for(var p = 0; p < newSkills.length; p++) {
-                            // console.log(p);
-                            for(var o =0; o < skills.length; o++) {
-                              // console.log(o);
-                              if (newSkills[p].skill == skills[o].skill) {
-                                if (newSkills[p].level != skills[o].level) {
-                                  skillDelta.push("{skill:"+ newSkills[p].skill+", level: "+newSkills[p].level - skills[o].level+"}");
-                                  console.log("skilldelta: "+skillDelta[skillDelta.length]);
-                                };
-
-                              };
-                            }
-                          }
-                        });
-                      // this means: find out if a given skill is in the skillset of the old job and 
-                      // if it is present in both old and new job: calculate the difference
-                      // if the skill is only present in the old job, forget about it
-                      // if the skill is only present in the new job: display the skill
-                    };
-                    var myWidth = 99/mySkills;
-                    $(".pos-single-skill-box").css("width", myWidth + "%");
-
-
-
-                    $("#position-skillcomp-overview").append("<div class='pos-comps-container-50 col-xs-6' id='comps-"+ currPos+"'>&nbsp;</div>");
-                    var myComps = 0;
-                    for (var i = 0; i < comps.length; i++) {
-                      var comp = comps[i].comp;
-                      var level = comps[i].level;
-                      
-                      // go through all skills and create a div for it. widht should be calculated by number of skills and the height should be according to the stkill level - WAREhousing 1 =10px
-                      if (level>0) {
-                        myComps++;
-                        $("#comps-" + currPos).append("<div class='pos-single-comp-box height-"+level+" comp-"+camelize(comp)+"' id='"+currPos+"-"+camelize(comp)+"-level-"+level+"'>"+comp+"</div>");
-                      };
-                    };
-                    var myCWidth = 99/myComps;
-                    $(".pos-single-comp-box").css("width", myCWidth + "%");
-
-                    
-
-
-
-                  // go through all nextPosition boxes and undim them as well
-                  for(j = 0; j < nextPositions.length; j++) {
-                      $("#" + nextPositions[j]).fadeTo(0, 1); 
-                      $("#" + nextPositions[j]).css("background-color", "yellow");
-
-                      // display the div with the delta on all skillcomps
-                      $("#sc-" + nextPositions[j]).append();
-
-
-                  }
-              },
-              error: function (XMLHttpRequest, textStatus, errorThrown) {
-              console.log('error', errorThrown);
-              }
-          });
-
-      } else if (isClicked == currPos) {
-        console.log("is already clicked");
-        getPositionDetails(currPos);
-      }
-    
-
-    });
+	});
 });
 
-$(document).ajaxStop( function () {
-  $(".btn").click(
-    function () {
-      $(".position-details-container").remove();
-      $("body").children().show();
+// ######################################################
 
-    }
-  )
-});
+// simple prep
+function prepPage(navig) {
+		// change the navigation bar
+	$(".nav-tabs li").removeClass("active");
+	$("#"+navig).addClass("active");
 
-function drawLine (currPos, nextPos) {
-  console.log("drawing a line");
-  // everything you need to know for the lines
-  // get the position of the next position
-  var coordCurrPos = $("#" + currPos).position();
-  var coordNextPos = $("#" + nextPos).position();
-
-  coordCurrPos.left += 20 + $("#" + currPos).width()/2;
-  coordNextPos.left += 20 + $("#" + nextPos).width()/2;
-
-  coordCurrPos.top += 20 + $("#" + currPos).height()/2;
-  coordNextPos.top += 20 + $("#" + nextPos).height()/2;
-
-  // coordNextPos.left += $("#" + nextPos).margin-left()+ $("#" + nextPos).width()/2;
-  // coordNextPos.top += $("#" + nextPos).height()/2;
-  // coordCurrPos.left += $("#" + currPos).width()/2;
-  // coordCurrPos.top += $("#" + currPos).height()/2;
-
-  var A ={left:0, top:0};
-  var B ={left:0, top:0};
-
-  A.left = Math.min(coordCurrPos.left, coordNextPos.left);
-  A.top = Math.min(coordCurrPos.top, coordNextPos.top);
-
-  console.log("A.left", A.left);
-
-  B.left = Math.max(coordCurrPos.left, coordNextPos.left);
-  B.top = Math.max(coordCurrPos.top, coordNextPos.top);
-
-  console.log("A.left", A.left);
-  console.log("B.left", B.left);
-
-  var canvasBuffer = 2;
-
-  if(A.top == B.top) {
-    A.top -= canvasBuffer;
-    B.top += canvasBuffer;
-  }
-
-  if(A.left == B.left) {
-    A.left -= canvasBuffer;
-    B.left += canvasBuffer;
-  }
-  console.log("A.left + buffer", A.left);
-  console.log("B.left + buffer", B.left);
-
-  var abHeight = B.top - A.top;
-  var abWidth = B.left - A.left;
-
-  // calculate the coordinates for the canvas
-  if (coordCurrPos.top > coordNextPos.top) {
-    var canvasTop = coordNextPos.top + $("#" + nextPos).height();
-  } else {
-    var canvasTop = coordCurrPos.top +1;
-  };
-  
-  var canvasLeft = Math.min(coordCurrPos.left, coordNextPos.left)-1;
-  var canvasBottom = Math.max(coordCurrPos.top, coordNextPos.top)+1;
-  var canvasRight = Math.max(coordCurrPos.left, coordNextPos.left)+ 1;
-  var canvasWidth = canvasRight - canvasLeft ;
-  var canvasHeight = canvasBottom - canvasTop + 2;
-
-
-  console.log("canvas: " + canvasTop + ", " + canvasRight + ", " + canvasBottom + ", " + canvasLeft);
-  $("body").prepend("<div class='canvas-div' id='"+currPos+"-"+nextPos+"'></div>");
-  // $("#"+currPos+"-"+nextPos).css("height", canvasHeight);
-  // $("#"+currPos+"-"+nextPos).css("width", canvasWidth);
-  // $("#"+currPos+"-"+nextPos).css("position", "absolute");
-  // $("#"+currPos+"-"+nextPos).css("top", canvasTop);
-  // $("#"+currPos+"-"+nextPos).css("left", canvasLeft);
-  // $("#"+currPos+"-"+nextPos).append("<svg xmlns='http://www.w3.org/2000/svg' version='1.1' style='width:"+ canvasWidth+"px; height:" + canvasHeight+"px;' id='"+currPos+"-"+nextPos+"-canvas' class='fixed-drawingboard'></svg>");
-  //   if(coordCurrPos.left < coordNextPos.left && coordCurrPos.top < coordNextPos.top) {
-  //   $("#"+currPos+"-"+nextPos+"-canvas").append("<line x1='0' y1='0' x2='"+canvasWidth+"' y2='"+canvasHeight+"'/>");
-  // } else if (coordCurrPos.left > coordNextPos.left && coordCurrPos.top > coordNextPos.top) {
-  //   $("#"+currPos+"-"+nextPos+"-canvas").append("<line x1='"+canvasWidth+"' y1='"+canvasHeight+"' x2='0' y2='0'/>");
-  // } else if (coordCurrPos.left < coordNextPos.left && coordCurrPos.top > coordNextPos.top) {
-  //   $("#"+currPos+"-"+nextPos+"-canvas").append("<line x1='"+canvasWidth+"' y1='0' x2='0' y2='"+canvasHeight+"'/>");
-  // } else {
-  //   $("#"+currPos+"-"+nextPos+"-canvas").append("<line x1='0' y1='"+canvasHeight+"' x2='"+canvasWidth+"' y2='0'/>");
-  // }
-
-
-  $("#"+currPos+"-"+nextPos).css("height", abHeight);
-  $("#"+currPos+"-"+nextPos).css("width", abWidth);
-  $("#"+currPos+"-"+nextPos).css("position", "absolute");
-  $("#"+currPos+"-"+nextPos).css("top", A.top);
-  $("#"+currPos+"-"+nextPos).css("left", A.left);
-  $("#"+currPos+"-"+nextPos).append("<svg xmlns='http://www.w3.org/2000/svg' version='1.1' style='width:"+ abWidth+"px; height:" + abHeight+"px;' id='"+currPos+"-"+nextPos+"-canvas' class='fixed-drawingboard'></svg>");
-  // draw a line
-  //
-  if(coordCurrPos.left < coordNextPos.left && coordCurrPos.top < coordNextPos.top) {
-    $("#"+currPos+"-"+nextPos+"-canvas").append("<line x1='2' y1='2' x2='"+abWidth+"' y2='"+abHeight+"'/>");
-  } else if (coordCurrPos.left > coordNextPos.left && coordCurrPos.top > coordNextPos.top) {
-    $("#"+currPos+"-"+nextPos+"-canvas").append("<line x1='"+abWidth+"' y1='"+abHeight+"' x2='2' y2='2'/>");
-  } else if (coordCurrPos.left < coordNextPos.left && coordCurrPos.top > coordNextPos.top) {
-    $("#"+currPos+"-"+nextPos+"-canvas").append("<line x1='"+abWidth+"' y1='2' x2='2' y2='"+abHeight+"'/>");
-  } else {
-    $("#"+currPos+"-"+nextPos+"-canvas").append("<line x1='2' y1='"+abHeight+"' x2='"+abWidth+"' y2='2'/>");
-  }
-  
-  $("#"+currPos+"-"+nextPos).html($("#"+currPos+"-"+nextPos).html());
-  // $("#cont").html($("#cont").html());
+	//empty the sidebar, details and toolbar
+	$("#sidebar").empty();
+	$("#details").empty();
+	$("#toolbar").empty();
 }
 
-function getPositionDetails (position) {
-  $("body").children().hide();
-  $("body").prepend("<div class='container position-details-container' id='detailsOf-"+position+"'>&nbsp;</div>");
-  $("#detailsOf-"+position).css("position", "fixed");
-  $("#detailsOf-"+position).append("<button type='button' class='btn btn-primary'>back to the overview</button>");
-  $("#detailsOf-"+position).append("<div class='row' id='contentOf-"+position+"'></div>");
 
-  var thisPosition ="";
-  $.getJSON( "http://165.227.162.247:3000/positions/"+position, function( data ) {
-
-    // everything that you want to have done, ut it here
-    thisPosition = data.positions;
-    thisTitle = thisPosition.title;
-    $("#contentOf-"+position).append("<h1>"+toTitleCase(thisPosition.title)+"</h1>");
-  });
-}
-
-function camelize(str) {
-  return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function(letter, index) {
-    return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
-  }).replace(/\s+/g, '');
-}
-
-function compareLevels(a,b) {
-  if (a.level > b.level)
-    return -1;
-  if (a.level < b.level)
-    return 1;
-  return 0;
-}
-
+// returns a title case string
 function toTitleCase(str) {
-    return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+	return str.replace(/\w\S*/g, function(txt) {
+		return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+	});
 }
 
+// returns a camelized string
+function camelize(str) {
+	return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function(letter, index) {
+		return index === 0 ? letter.toLowerCase() : letter.toUpperCase();
+	}).replace(/\s+/g, '');
+}
