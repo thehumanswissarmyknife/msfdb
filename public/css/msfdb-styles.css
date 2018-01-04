@@ -25,6 +25,12 @@ body {
     font-family: 'Helvetica Neue', Arial;
 }
 
+#logo {
+    position: fixed;
+    right: 30px;
+    top: 20px;
+}
+
 .row {
     color: black;
     text-align: center;
@@ -131,14 +137,10 @@ body.loading .modal {
     background-color: #93B38B;
 }
 
+#details .ui-state-active {
+    background: #7eb18f;
+}
 
-.scrollbar
-{
-    margin-left: 30px;
-    float: left;
-    height: 300px;
-    width: 65px;
-    background: #F5F5F5;
-    overflow-y: scroll;
-    margin-bottom: 25px;
+#toolbar .ui-state-active {
+    background: #9e7ac1;
 }
