@@ -91,7 +91,8 @@ $(".navPos").click(function () {
 	$(function() {
 		$(".draggable").draggable({
 			revert: true,
-			helper: "clone"
+			helper: "clone",
+				scroll: false
 		});
 
 		$( "#accordion" ).accordion({
@@ -370,7 +371,8 @@ $(".navPos").click(function () {
 						});
 						$(".draggable").draggable({
 							revert: true,
-							helper: "clone"
+							helper: "clone",
+				scroll: false
 						});
 					});
 				});
@@ -667,7 +669,7 @@ $(".navPos").click(function () {
 
 	}
 
-	async function calculateSkillDelta(currPos, nextPos) {
+	function calculateSkillDelta(currPos, nextPos) {
 		var skillDelta = [];
 		// console.log("currPos", currPos)
 		// console.log("###############################");
@@ -675,7 +677,7 @@ $(".navPos").click(function () {
 		try {
 			// get full-position fr both positions
 			var currentPosition = currPos;
-			var nextPosition = await $.getJSON("/full-position/" + nextPos);
+			var nextPosition = $.getJSON("/full-position/" + nextPos);
 
 			var currSkills = currentPosition.skills;
 			var nextSkills = nextPosition.position.skills;
@@ -742,7 +744,7 @@ $(".navPos").click(function () {
 					to: nextSkill.level,
 					adding: nextSkill.descriptions
 				};
-				await skillDelta.push(thisNewSkill);
+				skillDelta.push(thisNewSkill);
 			}
 
 		} catch (e) {
@@ -776,6 +778,8 @@ $(".navPos").click(function () {
 });
 
 
+// ###################################################
+// section for the learnings
 // ###################################################
 
 $(".navLearn").click(function () {
@@ -853,7 +857,8 @@ $(".navLearn").click(function () {
 		$(function() {
 			$(".draggable").draggable({
 				revert: true,
-				helper: "clone"
+				helper: "clone",
+				scroll: false
 			});
 
 			$( "#accordion" ).accordion({
@@ -888,7 +893,7 @@ $(".navLearn").click(function () {
 					$("<div/>", {class:"learning-methodology", id:"det-" + id + "-methodology", text:"Methodology: " + thisLearning.methodology}),
 					$("<div/>", {class:"learning-remarks", id:"det-" + id + "-remarks", text:"Comment: " + thisLearning.remarks}),
 					$("<div/>", {class:"learning-periodity", id:"det-" + id + "-periodity", text:"Periodity: " + thisLearning.periodity}),
-					$("<div/>", {class:"learning-modules", id:"det-" + id + "-modules", class: "myDropzone-module"}).append(
+					$("<div/>", {class:"learning-modules myDropzone-module", id:"det-" + id + "-modules"}).append(
 						$("<h3/>", { text:"Modules: "})
 						)
 					)
@@ -949,7 +954,7 @@ $(".navLearn").click(function () {
 				$("#mod-"+thisModule._id+"-dur").append(thisModule.duration + " minutes");
 
 			}
-			if(thisLearning.length!=null) {
+			if(thisLearning.length!==null) {
 				$(".learning-length").append(thisLearning.length);
 			} else {
 				if(learningLength < 480) {
@@ -973,8 +978,9 @@ $(".navLearn").click(function () {
 
 				// make the items draggabel
 				// $(".draggable").draggable({
-				// 	revert: true,
-				// 	helper: "clone"
+				//	revert: true,
+				//	helper: "clone",
+				// scroll: false
 				// });
 
 				// prepare the dropzone to drop the actions there
@@ -1054,12 +1060,49 @@ $(".navLearn").click(function () {
 });
 
 // ##################################################
+// section for the learning gap
+// ##################################################
 
 $(".navGap").click(function () {
 
 	prepPage("navGap");
 
-	// get all learning
+	// create the dropzones in the toolbar
+	// get all current learnings and put them with their modules in the toolbar
+	$.getJSON("/full-learnings", function (data) {
+
+		var learnings = data.learnings;
+
+		$("#toolbar").append(
+			$("<div/>", {id:"learning-accordion"})
+			);
+
+		// loop through all learnings
+		for (var i = 0; i < learnings.length; i++) {
+			var thisLearning = learnings[i];
+
+			// only if this learning has modules...
+			if(thisLearning.modules.length > 0){
+				$("#learning-accordion").append(
+					$("<h2/>", {text:thisLearning.name}),
+					$("<div/>", {id:thisLearning._id}).append(
+						"<ul/>")
+					);
+
+				for (var j = 0; j<thisLearning.modules.length; j++) {
+					var thisModule = thisLearning.modules[j];
+					$("#" + thisLearning._id + " ul").append(
+						$("<li/>", {text:thisModule.name, class:"myDropzone-module-action", id:thisModule._id})
+						);
+				}
+			}
+		}
+
+	});
+
+
+
+	// get the learning gap and populate the details
 	$.getJSON("/learning-gap", function (data) {
 
 		$("#details").append(
@@ -1077,7 +1120,7 @@ $(".navGap").click(function () {
 			// check if we already have a heading for this SKILL, if no, create one, otherwise
 			if ( $( ".uncoveredAction-skill-" + camelize(element.skill)).length>0) {
 				$("#uncoveredAction-skill-" + camelize(element.skill) +"-ul").append(
-					$("<li/>", {text: element.action})
+					$("<li/>", {text: element.action, id:element._id, class:"draggable action"})
 					);
 
 				// append 
@@ -1086,7 +1129,7 @@ $(".navGap").click(function () {
 					$("<h7/>", {id:"uncoveredAction-skill-" + camelize(element.skill), class:"uncoveredAction-skill-" + camelize(element.skill), text:toTitleCase(element.skill)}),
 					$("<div/>").append(
 						$("<ul/>", {id:"uncoveredAction-skill-" + camelize(element.skill)+"-ul"}).append(
-							$("<li/>", {text: element.action}))
+							$("<li/>", {text: element.action, id:element._id, class:"draggable action"}))
 						)
 				);
 			}
@@ -1135,6 +1178,54 @@ $(".navGap").click(function () {
 			heightStyle: "content",
 			header: "h7",
 			active: false
+			});
+
+			// activte the accordion for the learnings & mpodules
+			$( "#learning-accordion" ).accordion({
+			collapsible: true,
+			heightStyle: "content",
+			active: false
+			});
+
+			// make the draggable elements live
+			$(".draggable").draggable({
+				revert: true,
+				helper: "clone",
+				scroll: false
+			});
+
+			$(".myDropzone-module-action").droppable({
+				accept: ".action",
+				classes: {
+					"ui-droppable-active": "ui-state-active",
+					"ui-droppable-hover": "ui-state-hover-dz"
+				},
+				drop: function(event, ui) {
+					console.log("Dropped something?>");
+
+					// get the id of the dropped action and the module
+					var droppedAction = $(ui.draggable).attr("id");
+					// var actionText = $(ui.draggable).text();
+					var module = $(this).attr("id");
+
+					// AJAX patching of the module
+					$.ajax({
+						url: "/module/".concat(module),
+						dataType: "json",
+						type: "patch",
+						contentType: "application/json",
+						data: JSON.stringify({
+							actions: [droppedAction]
+						}),
+						success: function(data, textStatus, jQxhr) {
+							// when successfull, take the action out of the list
+							$("#" + droppedAction).remove();
+						},
+						error: function(jqXhr, textStatus, errorThrown) {
+							console.log(errorThrown);
+						}
+					});
+				}
 			});
 		});
 
