@@ -698,82 +698,57 @@ app.get("/skilldelta/:currPos/:nextPos", async (req, res) => {
 	var currPosId = req.params.currPos;
 	var nextPosId = req.params.nextPos;
 
+	var currSkills = [];
+	var nextSkills = [];
+	var skillDelta = [];
+
 	if(!ObjectID.isValid(currPosId) || !ObjectID.isValid(nextPosId)) {
 		res.status(404).send("bad ID, either first or second");
 	}
 
 	try {
-		var fullCurrPos = await getFullPosition2(currPosId);
-		var fullNextPos = await getFullPosition2(nextPosId);
+		var currPos = await Position.findById(currPosId);
+		var nextPos = await Position.findById(nextPosId);
 
-		var currSkills = fullCurrPos.skills;
-		var nextSkills = fullNextPos.skills;
-		var tempNextSkill = fullNextPos.skills;
-		console.log("Going from "+ currentPosition.title + " to "+ nextPosition.position.title);
-		console.log("#!#!#!#!#!##! the whole current skillset:", currSkills);
-		console.log("#!#!#!#!#!##! the whole next skillset:", nextSkills);
+		// get the minimum skillcomp for the current position and put the name and level into the currSkills array
+		for (var i = 0; i < currPos.skills.length; i++) {
+			var temp = await SkillComp.findById(currPos.skills[i].toString());
+			currSkills.push({name:temp.name, level: temp.level});
+		}
 
+		// get the full skillcomps for te enxt position.
+		for (var j = 0; j < nextPos.skills.length; j++) {
+			var temp = await SkillComp.findById(nextPos.skills[j].toString());
+			var skillPresent = false;
 
-
-		// for each skill in the current Position, check if the skill is present in the next position
-		for (var i = 0; i < currSkills.length; i++) {
-			var currSkill = currSkills[i];
-			for (var j = 0; j < nextSkills.length; j++) {
-				var nextSkill = nextSkills[j];
-				var isPresent = false;
-
-				if (currSkill.name != nextSkill.name) {
-					for (var i = 0; i < currSkills.length; i++) {
-
-						if (currSkills[i].name == nextSkill.name) {
-							isPresent = true;
-							// console.log("found the skill in the current Job")
-						}
-					}
-					if (!isPresent) {
-						var thisSkill = {
-							_id: currSkill._id + nextSkill._id,
-							skill: nextSkill.name,
-							from: 0,
-							to: nextSkill.level,
-							adding: nextSkill.descriptions
-						};
-					}
+			// see, if this skill is present in the current skills
+			for (var k = 0; k < currSkills.length; k++) {
+				
+				// if the skill.nbame is present, change the skillPresent varialbe to true!
+				if (temp.name == currSkills[k].name) {
+					skillPresent = true;
 				}
-				if (currSkill.name == nextSkill.name) {
-					// console.log("tempNextSkills before splice", tempNextSkill);
-					// console.log("J is", j);
-					tempNextSkill.splice(j, 1);
-					// console.log("tempNextSkills after splice", tempNextSkill);
 
-					if (currSkill.level < nextSkill.level) {
-						var thisSkill = {
-							_id: currSkill._id + nextSkill._id,
-							skill: currSkill.name,
-							from: currSkill.level,
-							to: nextSkill.level,
-							adding: nextSkill.descriptions
-						};
-					}
-					// console.log("### currSkill.name == nextSkill.name");
-					await skillDelta.push(thisSkill);
-					// console.log("### skillDelta:", skillDelta.length, skillDelta);
+				// if the skill is present and the level is higher, get the full skillcomp and push it to the skilldelta
+				if (temp.name == currSkills[k].name && temp.level > currSkills[k].level) {
+					var tempSkill = await getFullSkillComp(temp._id);
+					skillDelta.push({name:tempSkill.name, from:currSkills[k].level, to:tempSkill.level, descriptions:tempSkill.descriptions});
 				}
 			}
-		}
+			
+			// if the skill.name was not found in the current skillset, add it to the skilldelta
+			if(skillPresent != true) {
+				var tempSkill = await getFullSkillComp(temp._id);
 
-		for (var i = 0; i < tempNextSkill.length; i++) {
-			var newSkill = tempNextSkill[i];
-			var thisNewSkill = {
-				_id: currSkill._id + nextSkill._id,
-				skill: nextSkill.name,
-				from: 0,
-				to: nextSkill.level,
-				adding: nextSkill.descriptions
-			};
-			await skillDelta.push(thisNewSkill);
+				// push the inherited skill to the descriptions array
+				for (var l = 0; l < tempSkill.inherited.length; l++) {
+					tempSkill.descriptions.push(tempSkill.inherited[l]);
+				}
+				skillDelta.push({name:tempSkill.name, from:0, to:tempSkill.level, descriptions:tempSkill.descriptions});
+			}
 		}
-		res.status(200).send({skilldelta});
+		console.log("SkillDelta", skillDelta)
+		return res.status(200).send({skillDelta});
 	} catch (e) {
 		return res.status(404).send(e);
 	}

@@ -126,9 +126,7 @@ $(".navPos").click(function () {
 	function fillPositionDetails(pos) {
 		var position = pos.position;
 
-		console.log("POSITION INPUT", position);
 		var id = position._id;
-		console.log("Filling details for ", position.title);
 		$("#details").empty();
 
 		$("#details").append(
@@ -232,105 +230,17 @@ $(".navPos").click(function () {
 					$("<div/>", {id:"pos-det-nextPos-accordion-" + thisNextPosition._id})
 					);
 
-				// calculate the skilldelta
-				// var skillDelta = await calculateSkillDelta (position, thisNextPosition._id);
+				executeSkillDelta(id, thisNextPosition._id);
 
-				var skillDelta = new Promise(function(resolve, reject) {
-
-					return calculateSkillDelta(position, thisNextPosition._id);
-
-				});
-
-				skillDelta.then(function(skillDelta) {
-					console.log("awaited skilldelta", skillDelta);
-				}, function(err) {
-					console.log(err);
-				});
-
-				// when you have the skillDelta
-
-				var sk = skillDelta;
-
-				// cycle through all elements of the skilldelta
-				for (var j = 0; j < sk.length; j++) {
-					var thisSkillDelta = sk[j];
-					console.log("SK", thisSkillDelta);
-
-					// create the div for the skillDelta
-					$("#pos-det-nextPos-accordion-" + thisNextPosition._id).append(
-						$("<h5/>", {text:thisSkillDelta.name + ": going from " + thisSkillDelta.from + " to: " + thisSkillDelta.to}),
-						$("<div/>", {id:"pos-det-nextPos-accordion-" + thisSkillDelta._id}).append(
-							$("<ul/>"))
-						);
-
-					// cycle throught the added descriptions
-					for (var k = 0; k < thisSkillDelta.adding.length; k++) {
-						var descr = thisSkillDelta.adding[k];
-						$("#pos-det-nextPos-accordion-" + thisSkillDelta._id + " ul").append(
-							$("<li", {text:descr.description})
-							);
-					}
-				}
-
-				$(document).ajaxStop(function() {
-					$("#pos-det-nextPos-accordion-" + thisNextPosition._id).accordion({
-						collapsible: true,
-						heightStyle: "content",
-						header: "h5",
-						active: false
-					});
-				});
 			}
+
+
 			$(document).ajaxStop(function() {
-				$("#pos-det-nextPos-accordion").accordion({
-					collapsible: true,
-					heightStyle: "content",
-					header: "h3",
-					active: false
-				});
+
 			});
 		}
 
-		//   if(position.nextPositions.length > 0) {
 
-		//     async.each(position.nextPositions, async function (element) {
-
-		//       $("#pos-det-nextPos-accordion").append("<h3>"+toTitleCase(element.title)+"</h3><div id='pos-det-nextPos-accordion-"+element._id+"'></div>");
-
-		//       var skillDelta = calculateSkillDelta (position, element._id);
-		//       skillDelta.then( async function (sk) {
-		//         console.log("Skilldelta that is being processed", skillDelta);
-
-		//         async.each(sk, async function (ski) {
-		//           $("#pos-det-nextPos-accordion-"+element._id).append("<h5>"+ski.skill+": going from "+ski.from+" to: "+ski.to+"</h5><div id='pos-det-nextPos-accordion-"+ski._id+"'><ul></ul></div>");
-
-		//           // async.each( ski.adding, async function (descr) {
-		//           //   $("#pos-det-nextPos-accordion-"+ski._id+" ul").append("<li>"+descr.description+"</li>");
-		//           // })
-		//         })
-		//       })
-
-		//       $( document ).ajaxStop( function() 
-		// $("#pos-det-nextPos-accordion-"+element._id).accordion({
-		//           collapsible: true,
-		//           heightStyle: "content",
-		//           header: "h5",
-		//           active: false
-		//         }); 
-		//       })
-		//     }, function (error) {
-		//       console.log(error);
-		//     })
-
-		//   $( document ).ajaxStop( function() {
-		//     $("#pos-det-nextPos-accordion").accordion({
-		//       collapsible: true,
-		//       heightStyle: "content",
-		//       header: "h3",
-		//       active: false
-		//     }); 
-		//   }) 
-		// }
 		// create div for technical skills
 
 		if (position.skills.length > 0) {
@@ -460,6 +370,13 @@ $(".navPos").click(function () {
 			$("#pos-det-comps-accordion").accordion({
 				collapsible: true,
 				heightStyle: "content",
+				active: false
+			});
+
+			$("#pos-det-nextPos-accordion").accordion({
+				collapsible: true,
+				heightStyle: "content",
+				header: "h3",
 				active: false
 			});
 
@@ -668,99 +585,6 @@ $(".navPos").click(function () {
 		}
 
 	}
-
-	function calculateSkillDelta(currPos, nextPos) {
-		var skillDelta = [];
-		// console.log("currPos", currPos)
-		// console.log("###############################");
-
-		try {
-			// get full-position fr both positions
-			var currentPosition = currPos;
-			var nextPosition = $.getJSON("/full-position/" + nextPos);
-
-			var currSkills = currentPosition.skills;
-			var nextSkills = nextPosition.position.skills;
-			var tempNextSkill = nextPosition.position.skills;
-			// console.log("Going from "+ currentPosition.title + " to "+ nextPosition.position.title);
-			// console.log("#!#!#!#!#!##! the whole current skillset:", currSkills);
-			// console.log("#!#!#!#!#!##! the whole next skillset:", nextSkills);
-
-
-
-			// for each skill in the current Position, check if the skill is present in the next position
-			for (var i = 0; i < currSkills.length; i++) {
-				var currSkill = currSkills[i];
-				for (var j = 0; j < nextSkills.length; j++) {
-					var nextSkill = nextSkills[j];
-					var isPresent = false;
-
-					if (currSkill.name != nextSkill.name) {
-						for (var i = 0; i < currSkills.length; i++) {
-
-							if (currSkills[i].name == nextSkill.name) {
-								isPresent = true;
-								// console.log("found the skill in the current Job")
-							}
-						}
-						if (!isPresent) {
-							var thisSkill = {
-								_id: currSkill._id + nextSkill._id,
-								skill: nextSkill.name,
-								from: 0,
-								to: nextSkill.level,
-								adding: nextSkill.descriptions
-							};
-						}
-					}
-					if (currSkill.name == nextSkill.name) {
-						// console.log("tempNextSkills before splice", tempNextSkill);
-						// console.log("J is", j);
-						tempNextSkill.splice(j, 1);
-						// console.log("tempNextSkills after splice", tempNextSkill);
-
-						if (currSkill.level < nextSkill.level) {
-							var thisSkill = {
-								_id: currSkill._id + nextSkill._id,
-								skill: currSkill.name,
-								from: currSkill.level,
-								to: nextSkill.level,
-								adding: nextSkill.descriptions
-							};
-						}
-						// console.log("### currSkill.name == nextSkill.name");
-						skillDelta.push(thisSkill);
-						// console.log("### skillDelta:", skillDelta.length, skillDelta);
-					}
-				}
-			}
-
-			for (var i = 0; i < tempNextSkill.length; i++) {
-				var newSkill = tempNextSkill[i];
-				var thisNewSkill = {
-					_id: currSkill._id + nextSkill._id,
-					skill: nextSkill.name,
-					from: 0,
-					to: nextSkill.level,
-					adding: nextSkill.descriptions
-				};
-				skillDelta.push(thisNewSkill);
-			}
-
-		} catch (e) {
-			throw (e);
-		}
-
-		// console.log("SkillDelta: ", skillDelta);
-		// console.log("uniq Delta", uniqueDelta);
-
-		return skillDelta;
-		// if the skill is present, compare the levels 
-		// if the level-delta is greater 0, display the new descriptions
-	}
-
-
-
 
 	function alertBoxActionRemoval(action, description, positions) {
 		if (confirm("you are about to remove '" + action.action + "' from '" + description.description + "'. This will affect these positions: " + positions) == true) {
@@ -1233,6 +1057,50 @@ $(".navGap").click(function () {
 });
 
 // ######################################################
+
+
+function executeSkillDelta (currId, nextId) {
+
+	$.getJSON("/skilldelta/" + currId + "/" + nextId, function (data) {
+		var skillDelta = data.skillDelta;
+		console.log("Getting the skilldelta", nextId, skillDelta);
+
+
+		// cycle through all elements of the skilldelta
+		for (var j = 0; j < skillDelta.length; j++) {
+			var thisSkillDelta = skillDelta[j];
+
+			if ($("."+nextId + camelize(thisSkillDelta.name) + thisSkillDelta.from + "-" + thisSkillDelta.to).length === 0) {
+				// create the div for the skillDelta
+				$("#pos-det-nextPos-accordion-" + nextId).append(
+					$("<h5/>", {text:thisSkillDelta.name + ": going from " + thisSkillDelta.from + " to: " + thisSkillDelta.to}),
+					$("<div/>", {id:"pos-det-nextPos-accordion-" + nextId +"-"+ j, class:nextId + camelize(thisSkillDelta.name) + thisSkillDelta.from + "-" + thisSkillDelta.to}).append(
+						$("<ul/>"))
+					);
+
+				// cycle throught the added descriptions
+				for (var k = 0; k < thisSkillDelta.descriptions.length; k++) {
+					var descr = thisSkillDelta.descriptions[k];
+					$("#pos-det-nextPos-accordion-" + nextId +"-"+ j + " ul").append(
+						$("<li/>", {text:descr.description})
+						);
+				}
+			}
+
+			
+		}
+
+	});
+
+	$(document).ajaxStop(function() {
+		$("#pos-det-nextPos-accordion-" + nextId).accordion({
+			collapsible: true,
+			heightStyle: "content",
+			header: "h5",
+			active: false
+		});
+	});
+}
 
 // simple prep
 function prepPage(navig) {

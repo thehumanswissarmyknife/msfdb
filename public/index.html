@@ -17,12 +17,7 @@
     <script src="./js/async.min.js"></script>
     <script src="./js/lodash.core.js"></script>
 
-    <script>
-    $(document).on({
-        ajaxStart: function() { $("body").addClass("loading");},
-        ajaxStop: function() { $("body").removeClass("loading");}    
-    });
-    </script>
+
 
 
   </head>
@@ -35,7 +30,7 @@
         <div class="nav col-12">
           <div class="myNav">
             <ul class="nav nav-tabs">
-              <li role="presentation" class="active navPos" id="navPos"><a href="#">Position/Skills</a></li>
+              <li role="presentation" class="navPos" id="navPos"><a href="#">Position/Skills</a></li>
               <li role="presentation" class="navLearn" id="navLearn"><a href="#">Learning Offers</a></li>
               <li role="presentation" class="navGap" id="navGap"><a href="#">Learning Gap</a></li>
             </ul>
@@ -59,6 +54,14 @@
       </div>
       
        <script src="./js/msfdb.js"></script>
+       <script>
+           $(document).on({
+               ajaxStart: function() { $("body").addClass("loading");},
+               ajaxStop: function() { $("body").removeClass("loading");}    
+           });
+
+           $("#navPos").click();
+       </script>
        <div class="modal"><!-- Place at bottom of page --></div>
   </body>
 </html>
