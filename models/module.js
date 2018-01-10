@@ -6,7 +6,8 @@ var moduleSchema = new Schema ({
 	name: String,
 	objectives: Array,
 	actions: Array,
-	duration: Number
+	duration: Number,
+	url: String
 });
 
 var Module = mongoose.model('Module', moduleSchema);

@@ -57,6 +57,14 @@ body.loading .modal {
     padding-right: 5px;
 }
 
+#sidebar .ui-state-active {
+    background: #CF9B58;
+}
+
+#sidebar .ui-state-hover-dz {
+    background: #9E3CFF;
+}
+
 #details {
     position: fixed;
     margin-left: 250px;

@@ -10,7 +10,8 @@ var learningSchema = new Schema ({
 	remarks: String,
 	provider: String,
 	periodity: String,
-	methodology: String
+	methodology: String,
+	category: String
 });
 
 var Learning = mongoose.model('Learning', learningSchema);

@@ -61,7 +61,6 @@ $(".navPos").click(function () {
 		actions.forEach(function(element) {
 
 			if($("."+camelize(element.skill)+"-actions").length === 0 ){
-				console.log('Element', element);
 				$("#accordion-actions").append(
 					$("<h5/>", {text:toTitleCase(element.skill)}),
 					$("<div/>", {id:camelize(element.skill)+"-actions", class:camelize(element.skill)+"-actions"}).append(
@@ -81,14 +80,6 @@ $(".navPos").click(function () {
 			heightStyle: "content",
 			active: false
 		});
-
-		// skillsForActions.forEach( function (thisSkill) {
-		// 	$( "#"+thisSkill+"-actions").accordion({
-		// 		collapsible: true,
-		// 		heightStyle: "content",
-		// 		active: false
-		// 	});
-		// });
 	});
 
 	// get all skillcomps and fill them in the toolbar
@@ -143,7 +134,7 @@ $(".navPos").click(function () {
 
 		//load all data for this position
 		$.getJSON("/full-position/" + id, function(data) {
-			console.log("id", id);
+			// console.log("id", id);
 			$("#details").children().remove();
 			fillPositionDetails(data);
 		});
@@ -191,7 +182,7 @@ $(".navPos").click(function () {
 		// ################ check for requirements and get the name for each
 		//
 		if (position.requirements.length > 0) {
-			console.log("position.requirements.length", position.requirements.length);
+			// console.log("position.requirements.length", position.requirements.length);
 
 			for (var i = 0; i < position.requirements.length; i++) {
 				var thisReq = position.requirements[i];
@@ -273,7 +264,7 @@ $(".navPos").click(function () {
 		if (position.skills.length > 0) {
 
 			mySkills = position.skills;
-			console.log("MySkills:", mySkills);
+			// console.log("MySkills:", mySkills);
 
 
 			mySkills.forEach(function(skillsData) {
@@ -358,7 +349,7 @@ $(".navPos").click(function () {
 		if (position.competencies.length > 0) {
 
 			myComps = position.competencies;
-			console.log("competencies:", myComps);
+			// console.log("competencies:", myComps);
 
 
 			myComps.forEach(function(compsData) {
@@ -640,14 +631,13 @@ $(".navLearn").click(function () {
 	$("#toolbar").prepend(
 		$("<div/>", {id:"accordion"}).append(
 			$("<h3/>", {text:"Actions"}),
-			$("<div/>", {id:"accordion-actions"}).append(
-				$("<ul/>")
-				),
+			$("<div/>", {id:"accordion-actions"}),
 			$("<h3/>", {text:"Positions"}),
 			$("<div/>", {id:"accordion-positions"}).append(
 				$("<ul/>")
 				)
-			)
+			), 
+			$("<div/>", {id:"trashcan", class: "myDropzone-action"})
 		);
 
 
@@ -657,8 +647,25 @@ $(".navLearn").click(function () {
 		data.learnings.forEach(function (element) {
 			var thisId = element._id;
 
+			$("#sidebar").append(
+				$("<div/>", {id:"learning-accordion"})
+				);
+
+
+			// check if there already is a n accordion header for this learning category
+
+
+			if($(".learning-cat"+camelize(element.category)).length === 0) {
+				$("#learning-accordion").append(
+					$("<h3/>", {text:element.category}),
+					$("<div/>", {id:"learning-cat"+camelize(element.category), class:"learning-cat"+camelize(element.category)}).append(
+						$("<ul/>")
+						)
+					);
+			}
+
 			if(element.modules.length > 0){
-				$("#sidebar").append(
+				$("#learning-cat"+camelize(element.category)).append(
 					$("<div/>", {class:"learning-box", id: thisId}).append(
 						$("<a>", {href:"#", text: element.name}))
 					);
@@ -667,13 +674,39 @@ $(".navLearn").click(function () {
 	});
 
 	// get all actions and fill them in the toolbar
-	$.getJSON("/actions", function (data) {
+	$.getJSON("/actions", function(data) {
+
+		var skillsForActions = [];
 
 		var actions = data.actions;
+
 		actions.forEach(function(element) {
-			$("#accordion-actions ul").append(
-				$("<li/>", {class:"draggable ui-draggable ui-draggable-handle action", id:element._id, text:element.action})
+
+			if($("."+camelize(element.skill)+"-actions").length === 0 ){
+
+				$("#accordion-actions").append(
+					$("<h5/>", {text:toTitleCase(element.skill)}),
+					$("<div/>", {id:camelize(element.skill)+"-actions", class:camelize(element.skill)+"-actions"}).append(
+						$("<ul/>")
+						)
+					);
+
+				skillsForActions.push(camelize(element.skill));
+			}
+			
+			$("#"+ camelize(element.skill)+"-actions ul").append(
+				$("<li/>", {class: "draggable action", id:element._id, text: element.action})
 				);
+		});
+		$( "#accordion-actions").accordion({
+			collapsible: true,
+			heightStyle: "content",
+			active: false
+		});
+		$( "#learning-accordion").accordion({
+			collapsible: true,
+			heightStyle: "content",
+			active: 0
 		});
 	});
 
@@ -694,14 +727,14 @@ $(".navLearn").click(function () {
 		// clicking on one of the learnings in the sidebar
 		$(".learning-box").click(function () {
 			var id = $(this).attr("id");
-			console.log("ID", id);
+			// console.log("ID", id);
 			
 
 			// check what was clicked
 			if (id == "newLearning") {		// if it's the NEW button
 				createNewLearning();
 			} else {
-				console.log("Clicked a learning box");
+				// console.log("Clicked a learning box");
 				updateDetails(id);		// fill the detials
 			}
 		});
@@ -729,7 +762,7 @@ $(".navLearn").click(function () {
 		$.getJSON("/full-learning/" + id, function (data) {
 
 			var thisLearning = data.learning;
-			console.log("data: ", data);
+			// console.log("data: ", data);
 
 			// empty the learning details
 			$("#details").empty();
@@ -745,6 +778,7 @@ $(".navLearn").click(function () {
 					$("<div/>", {class:"learning-methodology", id:"det-" + id + "-methodology", text:"Methodology: " + thisLearning.methodology}),
 					$("<div/>", {class:"learning-remarks", id:"det-" + id + "-remarks", text:"Comment: " + thisLearning.remarks}),
 					$("<div/>", {class:"learning-periodity", id:"det-" + id + "-periodity", text:"Periodity: " + thisLearning.periodity}),
+					$("<div/>", {class:"learning-cost", id:"det-"+ id + "-cost", text:"Cost: "}),
 					$("<div/>", {class:"learning-modules myDropzone-module", id:"det-" + id + "-modules"}).append(
 						$("<h3/>", { text:"Modules: "})
 						)
@@ -754,6 +788,12 @@ $(".navLearn").click(function () {
 			// for all non-OCA learning offers, make the provider red
 			if(thisLearning.provider != "OCA") {
 				$(".learning-provider").css("color", "red");
+			}
+
+			if(thisLearning.hasOwnProperty('cost')) {
+				$("#det-"+ id + "-cost").text("Cost: " + thisLearning.cost);
+			} else {
+				$("#det-"+ id + "-cost").remove();
 			}
 
 			$("#det-" + id +"-modules").append(
@@ -1023,25 +1063,25 @@ $(".navGap").click(function () {
 
 		$(document).ajaxStop(function() {
 			$( "#uncoveredActions-accordion" ).accordion({
-			collapsible: true,
-			heightStyle: "content",
-			header: "h7",
-			active: false
+				collapsible: true,
+				heightStyle: "content",
+				header: "h7",
+				active: false
 			});
 
 			// activte the accordion for unvocered actions
 			$( "#coveredActions-accordion" ).accordion({
-			collapsible: true,
-			heightStyle: "content",
-			header: "h7",
-			active: false
+				collapsible: true,
+				heightStyle: "content",
+				header: "h7",
+				active: false
 			});
 
 			// activte the accordion for the learnings & mpodules
 			$( "#learning-accordion" ).accordion({
-			collapsible: true,
-			heightStyle: "content",
-			active: false
+				collapsible: true,
+				heightStyle: "content",
+				active: false
 			});
 
 			// make the draggable elements live
@@ -1084,11 +1124,6 @@ $(".navGap").click(function () {
 					});
 				}
 			});
-
-		});
-
-		$( function() {
-			// activte the accordion for unvocered actions
 
 		});
 
@@ -1150,8 +1185,10 @@ function executeSkillDelta (currId, nextId) {
 						);
 				}
 			}
+		}
 
-			
+		if (skillDelta.length === 0) {
+			$("#pos-det-nextPos-accordion-" + nextId).text("No change in skill levels.");
 		}
 
 	});
