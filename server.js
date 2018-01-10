@@ -7,6 +7,7 @@ var fs = require ('fs');
 var {ObjectID} = require('mongodb');
 var _ = require('lodash');
 
+// models
 var {Position} = require ('./models/position');
 var {SkillComp} = require('./models/skillComp');
 var {Action} = require('./models/action');
@@ -14,6 +15,8 @@ var {Description} = require('./models/description');
 var {Knowledge} = require('./models/knowledge');
 var {Learning} = require('./models/learning');
 var {Module} = require('./models/module');
+var {User} = require('./models/user');
+
 /**Including these two libraries to control flow */
 var async = require('async');
 var flowControl = require('./customlib/flowControl');
@@ -614,6 +617,24 @@ app.get("/full-module/:id", async (req, res) => {
 	}catch (e) {
 		res.status(404).send(e);
 	}
+});
+
+// USER
+
+app.post('/user', (req, res) => {
+
+	var body = _.pick(req.body, ['username', 'email', 'password', 'level']);
+	var user = new User(body);
+
+	user.save().then(() => {
+		return user.generateAuthToken();
+	}).then((token) => {
+		res.header('x-auth', token).status(200).send({user, status: "created"});
+	}).catch((e) => {
+		res.status(404).send(e);
+	});
+
+
 });
 
 app.get('/learning-gap', async (req, res) => {

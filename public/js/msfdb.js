@@ -365,15 +365,6 @@ $(".navPos").click(function () {
 					$("#pos-det-comps-accordion-" + compsData._id + " ul").append(
 						$("<li/>", {text:descrData.description})
 						);
-
-
-					// $( document ).ajaxStop( function() {
-					//   $("#pos-det-comps-accordion-"+compsData._id).accordion({
-					//     collapsible: true,
-					//     heightStyle: "content",
-					//     header: "h5"   
-					//   }); 
-					// })
 				});
 			});
 		}
@@ -831,7 +822,7 @@ $(".navLearn").click(function () {
 				for (var j = 0; j < thisModule.objectives.length; j++) {
 					var thisObjective = thisModule.objectives[j];
 					$("#mod-"+thisModule._id+"-obj ul").append(
-						$("<li/>", {class:"draggable objective", id:"obj-"+thisObjective._id, text:thisObjective})
+						$("<li/>", {class:"objective", id:"obj-"+thisObjective._id, text:thisObjective})
 						);
 				}
 

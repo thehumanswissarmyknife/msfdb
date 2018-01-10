@@ -16,8 +16,9 @@
 }
 
 .myNav {
-    margin-left: 260px;
+    margin-left: 265px;
 }
+
 body {
     font-family: 'Helvetica Neue', Arial;
 }
@@ -145,6 +146,10 @@ body.loading .modal {
 #learning-accordion ul {
     list-style-type: none;
     padding-left: 0;
+}
+
+.draggable {
+    cursor: pointer;
 }
 
 .modal {
