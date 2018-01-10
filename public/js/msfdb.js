@@ -12,9 +12,7 @@ $(".navPos").click(function () {
 	$("#toolbar").prepend(
 		$("<div/>", {id:"accordion"}).append(
 			$("<h3/>", {text:"Actions"}),
-			$("<div/>", {id:"accordion-actions"}).append(
-				$("<ul/>")
-				),
+			$("<div/>", {id:"accordion-actions"}),
 			$("<h3/>", {text:"Positions"}),
 			$("<div/>", {id:"accordion-positions"}).append(
 				$("<ul/>")
@@ -27,7 +25,8 @@ $(".navPos").click(function () {
 			$("<div/>", {id:"accordion-learnings"}).append(
 				$("<ul/>")
 				)
-			)
+			), 
+			$("<div/>", {id:"trashcan", class: "myDropzone-action"})
 		);
 
 	// get all positions into the sidebar
@@ -55,13 +54,41 @@ $(".navPos").click(function () {
 	// get all actions and fill them in the toolbar
 	$.getJSON("/actions", function(data) {
 
+		var skillsForActions = [];
+
 		var actions = data.actions;
 
 		actions.forEach(function(element) {
-			$("#accordion-actions ul").append(
+
+			if($("."+camelize(element.skill)+"-actions").length === 0 ){
+				console.log('Element', element);
+				$("#accordion-actions").append(
+					$("<h5/>", {text:toTitleCase(element.skill)}),
+					$("<div/>", {id:camelize(element.skill)+"-actions", class:camelize(element.skill)+"-actions"}).append(
+						$("<ul/>")
+						)
+					);
+
+				skillsForActions.push(camelize(element.skill));
+			}
+			
+			$("#"+ camelize(element.skill)+"-actions ul").append(
 				$("<li/>", {class: "draggable action", id:element._id, text: element.action})
 				);
 		});
+		$( "#accordion-actions").accordion({
+			collapsible: true,
+			heightStyle: "content",
+			active: false
+		});
+
+		// skillsForActions.forEach( function (thisSkill) {
+		// 	$( "#"+thisSkill+"-actions").accordion({
+		// 		collapsible: true,
+		// 		heightStyle: "content",
+		// 		active: false
+		// 	});
+		// });
 	});
 
 	// get all skillcomps and fill them in the toolbar
@@ -630,11 +657,12 @@ $(".navLearn").click(function () {
 		data.learnings.forEach(function (element) {
 			var thisId = element._id;
 
-			// $("#learnings-sidebar").append("<div class='learning-box' id='" + thisId + "'></div>");
-			$("#sidebar").append(
-				$("<div/>", {class:"learning-box", id: thisId}).append(
-					$("<a>", {href:"#", text: element.name}))
-				);
+			if(element.modules.length > 0){
+				$("#sidebar").append(
+					$("<div/>", {class:"learning-box", id: thisId}).append(
+						$("<a>", {href:"#", text: element.name}))
+					);
+			}
 		});
 	});
 
@@ -775,10 +803,16 @@ $(".navLearn").click(function () {
 						);
 				}
 
-				$("#mod-"+thisModule._id+"-dur").append(thisModule.duration + " minutes");
+				if(thisModule.duration !== null) {
+					$("#mod-"+thisModule._id+"-dur").append(thisModule.duration + " minutes");
+				} else {
+					$("#mod-"+thisModule._id+"-dur h7").remove();
+				}
+
+				
 
 			}
-			if(thisLearning.length!==null) {
+			if (typeof thisLearning.length != 'undefined'){
 				$(".learning-length").append(thisLearning.length);
 			} else {
 				if(learningLength < 480) {
@@ -987,8 +1021,7 @@ $(".navGap").click(function () {
 			}
 		});
 
-		$( function() {
-			// activte the accordion for unvocered actions
+		$(document).ajaxStop(function() {
 			$( "#uncoveredActions-accordion" ).accordion({
 			collapsible: true,
 			heightStyle: "content",
@@ -1051,9 +1084,40 @@ $(".navGap").click(function () {
 					});
 				}
 			});
+
+		});
+
+		$( function() {
+			// activte the accordion for unvocered actions
+
 		});
 
 	});
+});
+
+
+// ##################################################
+// section for the admin
+// ##################################################
+
+$(".navAdmin").click(function () {
+
+	console.log("Entering the admin area");
+
+	prepPage("navAdmin");
+
+	// populate the sidebar
+
+	$("#sidebar").append(
+		$("<ul/>").append(
+			$("<button/>", {type:"button", class:"btn btn-secondary",text:"Action", id:"newAction"}),
+			$("<button/>", {type:"button", class:"btn btn-secondary",text:"Learning", id:"newLearning"}),
+			$("<button/>", {type:"button", class:"btn btn-secondary",text:"Module", id:"newModule"})
+			)
+		);
+
+
+
 });
 
 // ######################################################

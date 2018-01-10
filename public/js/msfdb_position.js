@@ -240,46 +240,6 @@ function fillPositionDetails (pos) {
     });
   }
 
-//   if(position.nextPositions.length > 0) {
-
-//     async.each(position.nextPositions, async function (element) {
-
-//       $("#pos-det-nextPos-accordion").append("<h3>"+toTitleCase(element.title)+"</h3><div id='pos-det-nextPos-accordion-"+element._id+"'></div>");
-
-//       var skillDelta = calculateSkillDelta (position, element._id);
-//       skillDelta.then( async function (sk) {
-//         console.log("Skilldelta that is being processed", skillDelta);
-
-//         async.each(sk, async function (ski) {
-//           $("#pos-det-nextPos-accordion-"+element._id).append("<h5>"+ski.skill+": going from "+ski.from+" to: "+ski.to+"</h5><div id='pos-det-nextPos-accordion-"+ski._id+"'><ul></ul></div>");
-
-//           // async.each( ski.adding, async function (descr) {
-//           //   $("#pos-det-nextPos-accordion-"+ski._id+" ul").append("<li>"+descr.description+"</li>");
-//           // })
-//         })
-//       })
-      
-//       $( document ).ajaxStop( function() 
-        // $("#pos-det-nextPos-accordion-"+element._id).accordion({
-//           collapsible: true,
-//           heightStyle: "content",
-//           header: "h5",
-//           active: false
-//         }); 
-//       })
-//     }, function (error) {
-//       console.log(error);
-//     })
-
-//   $( document ).ajaxStop( function() {
-//     $("#pos-det-nextPos-accordion").accordion({
-//       collapsible: true,
-//       heightStyle: "content",
-//       header: "h3",
-//       active: false
-//     }); 
-//   }) 
-// }
   // create div for technical skills
 
   if(position.skills.length >0 ) {
