@@ -616,6 +616,94 @@ app.get("/full-module/:id", async (req, res) => {
 	}
 })
 
+app.get("/skilldelta/:currPos/:nextPos", async (req, res) => {
+	console.log("skilldelta");
+
+	var currPosId = req.params.currPos;
+	var nextPosId = req.params.nextPos;
+
+	if(!ObjectID.isValid(currPosId) || !ObjectID.isValid(nextPosId)) {
+		res.status(404).send("bad ID, either first or second");
+	}
+
+	try {
+		var fullCurrPos = await getFullPosition(currPosId);
+		var fullNextPos = await getFullPosition(nextPosId);
+
+		var currSkills = fullCurrPos.skills;
+		var nextSkills = fullNextPos.skills;
+		var tempNextSkill = fullNextPos.skills;
+		// console.log("Going from "+ currentPosition.title + " to "+ nextPosition.position.title);
+		// console.log("#!#!#!#!#!##! the whole current skillset:", currSkills);
+		// console.log("#!#!#!#!#!##! the whole next skillset:", nextSkills);
+
+
+
+		// for each skill in the current Position, check if the skill is present in the next position
+		for (var i = 0; i < currSkills.length; i++) {
+			var currSkill = currSkills[i];
+			for (var j = 0; j < nextSkills.length; j++) {
+				var nextSkill = nextSkills[j];
+				var isPresent = false;
+
+				if (currSkill.name != nextSkill.name) {
+					for (var i = 0; i < currSkills.length; i++) {
+
+						if (currSkills[i].name == nextSkill.name) {
+							isPresent = true;
+							// console.log("found the skill in the current Job")
+						}
+					}
+					if (!isPresent) {
+						var thisSkill = {
+							_id: currSkill._id + nextSkill._id,
+							skill: nextSkill.name,
+							from: 0,
+							to: nextSkill.level,
+							adding: nextSkill.descriptions
+						};
+					}
+				}
+				if (currSkill.name == nextSkill.name) {
+					// console.log("tempNextSkills before splice", tempNextSkill);
+					// console.log("J is", j);
+					tempNextSkill.splice(j, 1);
+					// console.log("tempNextSkills after splice", tempNextSkill);
+
+					if (currSkill.level < nextSkill.level) {
+						var thisSkill = {
+							_id: currSkill._id + nextSkill._id,
+							skill: currSkill.name,
+							from: currSkill.level,
+							to: nextSkill.level,
+							adding: nextSkill.descriptions
+						};
+					}
+					// console.log("### currSkill.name == nextSkill.name");
+					await skillDelta.push(thisSkill);
+					// console.log("### skillDelta:", skillDelta.length, skillDelta);
+				}
+			}
+		}
+
+		for (var i = 0; i < tempNextSkill.length; i++) {
+			var newSkill = tempNextSkill[i];
+			var thisNewSkill = {
+				_id: currSkill._id + nextSkill._id,
+				skill: nextSkill.name,
+				from: 0,
+				to: nextSkill.level,
+				adding: nextSkill.descriptions
+			};
+			await skillDelta.push(thisNewSkill);
+		}
+		res.status(200).send({skilldelta});
+	} catch (e) {
+		return res.status(404).send(e);
+	}
+
+});
+
 
 async function getFullPosition(id) {
 	console.log("getFullPosition");

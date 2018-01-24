@@ -7,6 +7,10 @@ var fs = require ('fs');
 var {ObjectID} = require('mongodb');
 var _ = require('lodash');
 
+const got = require('got');
+
+const http = require('http');
+
 var {Server} = require('./server');
 
 var {Position} = require ('./models/position');
@@ -15,6 +19,7 @@ var {Action} = require('./models/action');
 var {Description} = require('./models/description');
 var {Knowledge} = require('./models/knowledge');
 var {Learning} = require('./models/learning');
+var {Module} = require('./models/module');
 
 if(typeof require !== 'undefined') XLSX = require('xlsx');
 
@@ -48,6 +53,7 @@ mongoose.Promise = global.Promise;
 // updateComps();
 
 exportData ();
+// getFullLearnings();
 
 
 
@@ -57,7 +63,7 @@ var i=0;
 function encodeValue (value, cell, sheet, boldBool) {
 
 
-	sheet[XLSX.utils.encode_cell(cell)] = {t: "s", v: value, s: {font: {bold: boldBool}}};
+	sheet[XLSX.utils.encode_cell(cell)] = {t: "s", v: value, w: value, r: value, s: {font: {bold: boldBool}}};
 
 
 	// sheet[XLSX.utils.encode_cell(cell)] = {t: "s", v: value};
@@ -90,13 +96,9 @@ async function exportData() {
 		};
 
 	try {
-		var fullPositions = await getFullPositions ();
-
-		
+		var fullPositions = await getFullPositions ();		
 
 		// console.log("fullPositions", fullPositions);
-
-
 
 		for (var i = 0; i < fullPositions.length; i++) {
 			// if(i ==0) {
@@ -116,15 +118,47 @@ async function exportData() {
 			var descrWidth = 0;
 			var actionWidth = 0;
 
+			var nextPositions = [];
+			for  (var j = 0; j < thisPosition.nextPositions.length; j++) {
+				// var thisNextPos = thisPosition.nextPositions[j];
+				var nextPos = await Position.findById(thisPosition.nextPositions[j]);
+				// console.log("Nextpos", nextPos.title);
+
+				nextPositions.push(nextPos.title);
+			}
+
+			var learnings = [];
+			for  (var j = 0; j < thisPosition.learnings.length; j++) {
+				// var thisNextPos = thisPosition.nextPositions[j];
+				var learn = await Learning.findById(thisPosition.learnings[j].learning);
+				// console.log("Learning", learn);
+
+				learnings.push(learn.name);
+			}
+
+			
+
 			newSheet = {"!ref":"A1:C100"};
+			var wsCols = [
+				{wch:10, wpx:90}, 
+				{wch:10, wpx:90}, 
+				{wch:40, wpx:200}
+			];
+
+			// var mySheet = wb.Sheets[thisTitle];
+			// console.log("mysheet", mySheet);
+			// mySheet['!cols'] = wsCols;
 
 			//put the job title in cell A1
 			wb.Sheets[thisTitle] = encodeValue(thisTitle, cursor, newSheet, true);
-
 			cursor.r += 1;
 			wb.Sheets[thisTitle] = encodeValue(thisPosition.irffg, cursor, newSheet, false);
 			cursor.r += 1;
 			wb.Sheets[thisTitle] = encodeValue("Level " + thisPosition.level, cursor, newSheet, false);
+			cursor.r += 1;
+			wb.Sheets[thisTitle] = encodeValue("Learning offers receommended:  " + learnings, cursor, newSheet, false);
+			cursor.r += 1;
+			wb.Sheets[thisTitle] = encodeValue("Next positions:  " + nextPositions, cursor, newSheet, false);
 			cursor.r += 2;
 			wb.Sheets[thisTitle] = encodeValue("Technical Skill ", cursor, newSheet, true);
 			cursor.c += 1;
@@ -159,86 +193,230 @@ async function exportData() {
 					cursor.c -= 1;
 				})
 				cursor.c -= 1;
-
-				// enter all inherited skills
-
-				// if (i =3) {
-				// 	console.log("inherited", thisSkill.inherited);
-				// }
-				// wb.Sheets[thisTitle] = encodeValue(thisSkill.name + " - inherited", cursor, newSheet, false);
-				// cursor.c +=1;
-
-				// thisSkill.inherited.forEach(function (thisDescription) {
-				// 	wb.Sheets[thisTitle] = encodeValue(thisDescription.description, cursor, newSheet, false);
-				// 	if(thisDescription.description.length > descrWidth) {
-				// 		descrWidth = thisDescription.description.length;
-				// 	}
-				// 	cursor.c += 1;
-				// 	thisDescription.actions.forEach(function (thisAction) {
-				// 		wb.Sheets[thisTitle] = encodeValue(thisAction.action, cursor, newSheet, false);
-
-				// 		if(thisAction.action.length > actionWidth){
-				// 			actionWidth = thisAction.action.length;
-				// 		}
-				// 		cursor.r += 1;
-				// 	})
-				// 	cursor.c -= 1;
-				// })
-				// cursor.c -= 1;
-
 			})
-
-			// for(var j = 0; j < thisPosition.skills.length; j++){
-			// 	var thisSkill = thisPosition.skills[j];
-			// 	wb.Sheets[thisTitle] = encodeValue(thisSkill.name + " Level " + thisSkill.level, cursor, newSheet);
-			// 	cursor.c +=1;
-			// 	for(var k = 0; k < thisSkill.descriptions.length; k++) {
-
-			// 	}
-			// }
-			// shift the cursot to A2
-			
-
-			// console.log("NewSheet", newSheet);
-
-			
-
-
-
 		}
 		// console.log("wb.Sheets", wb.Sheets)
 	} catch (e) {
 		console.log(e);
 	}
 
-
-	// var new_ws_name = "SheetJS";
-
-	// /* make worksheet */
-	// var ws_data = [
-	//   [ "S", "h", "e", "e", "t", "J", "S" ],
-	//   [  1 ,  2 ,  3 ,  4 ,  5 ]
-	// ];
-	// var ws = XLSX.utils.aoa_to_sheet(ws_data);
-
-	/* Add the sheet name to the list */
-	// wb.SheetNames.push("ws");
-
-	/* Load the worksheet object */
-	// wb.Sheets[0] = ws;
-
 	if(typeof require !== 'undefined') XLSX = require('xlsx');
 	/* output format determined by filename */
 	XLSX.writeFile(wb, 'out.xls');
-	
 
-	// for(var R = range.s.r; R <= range.e.r; ++R) {
-	//   for(var C = range.s.c; C <= range.e.c; ++C) {
-	//     var cell_address = {c:C, r:R};
-	//     /* if an A1-style address is needed, encode the address */
-	//     var cell_ref = XLSX.utils.encode_cell(cell_address);
-	//   }
-	// }
+	// doing the same for the learnings
+
+	var wb_learnings = {
+	  SheetNames: ["Info"],
+	  Sheets: {
+	    Info: {
+	      "!ref":"A1:A1",
+	      A1: { t:"s", v:"Welcome to the learning offer overview", s: {"font": {"bold": true}}}
+    	}
+	  }
+	}
+
+	wb_learnings.Props = {
+		Title: "MSF OCA HR Supply Learning",
+		Subject: "Tech Learning offers mapped",
+		Author: "Dennis Vocke",
+		Manager: "Sheet Manager",
+		Company: "MSF OCA",
+		Category: "Experimentation",
+		Keywords: "Test",
+		Comments: "Nothing to say here",
+		LastAuthor: "Not SheetJS",
+		CreatedDate: new Date(2017,12,19)
+	};
+
+	try {
+		var fullLearnings = await getFullLearnings();
+
+		for (var i = 0; i < fullLearnings.length; i++) {
+
+			console.log("doing stuff");
+			var cursor = {c:0, r:0}; // to iterate through the cells
+
+			var cell_ref = XLSX.utils.encode_cell(cursor);
+
+			var thisLearning = fullLearnings[i];
+
+			if(thisLearning.modules.length === 0) {
+				continue;
+			}
+
+			// console.log ("ThisLearning", thisLearning.modules);
+			var thisTitle = thisLearning.name.substring(0,29);
+
+			var newSheet = wb_learnings.SheetNames.push(thisTitle);
+
+			newSheet = {"!ref":"A1:C100"};
+
+			wb_learnings.Sheets[thisTitle] = encodeValue(thisLearning.name, cursor, newSheet, true);
+			cursor.r += 1;
+
+			wb_learnings.Sheets[thisTitle] = encodeValue("Provided by: ", cursor, newSheet, false);
+			cursor.c += 1;
+			wb_learnings.Sheets[thisTitle] = encodeValue(thisLearning.provider, cursor, newSheet, false);
+			cursor.c -= 1;
+			cursor.r += 1;
+
+			if (typeof thisLearning.length !== "") {
+				wb_learnings.Sheets[thisTitle] = encodeValue("Length: ", cursor, newSheet, false);
+				cursor.c += 1;
+				wb_learnings.Sheets[thisTitle] = encodeValue(thisLearning.length, cursor, newSheet, false);
+				cursor.c -= 1;
+				cursor.r += 1;
+			}
+
+			wb_learnings.Sheets[thisTitle] = encodeValue("Status: ", cursor, newSheet, false);
+			cursor.c += 1;
+			// console.log("Status:", thisLearning.status);
+
+			if(_.has(thisLearning, 'name')) {
+				console.log("Status entdeckt:", thisLearning.status);
+			}
+			wb_learnings.Sheets[thisTitle] = encodeValue(String(thisLearning.status), cursor, newSheet, false);
+			cursor.c -= 1;
+			cursor.r += 1;
+
+			wb_learnings.Sheets[thisTitle] = encodeValue("Method: ", cursor, newSheet, false);
+			cursor.c += 1;
+			wb_learnings.Sheets[thisTitle] = encodeValue(thisLearning.methodology, cursor, newSheet, false);
+			cursor.c -= 1;
+			cursor.r += 1;
+
+			wb_learnings.Sheets[thisTitle] = encodeValue("Frequency: " + String(thisLearning.periodity), cursor, newSheet, false);
+			cursor.c += 1;
+			wb_learnings.Sheets[thisTitle] = encodeValue(String(thisLearning.periodity), cursor, newSheet, false);
+			cursor.c -= 1;
+			cursor.r += 1;
+
+			wb_learnings.Sheets[thisTitle] = encodeValue("Remarks: ", cursor, newSheet, false);
+			cursor.c += 1;
+			wb_learnings.Sheets[thisTitle] = encodeValue(thisLearning.remarks, cursor, newSheet, false);
+			cursor.c -= 1;
+			cursor.r += 2;
+			wb_learnings.Sheets[thisTitle] = encodeValue("Modules: ", cursor, newSheet, false);
+			cursor.r += 1;
+
+			var myModules = thisLearning.modules;
+			for(var j = 0; j < myModules.length; j++) {
+
+				wb_learnings.Sheets[thisTitle] = encodeValue(myModules[j].name + " ("+myModules[j].duration+" minutes)", cursor, newSheet, false);
+				cursor.r += 1;
+				wb_learnings.Sheets[thisTitle] = encodeValue("Objectives:", cursor, newSheet, false);
+
+				cursor.c += 1;
+				for (var k = 0; k < myModules[j].objectives.length; k++) {
+					wb_learnings.Sheets[thisTitle] = encodeValue(myModules[j].objectives[k], cursor, newSheet, false);
+					cursor.r += 1;
+				}
+				cursor.c -= 1;
+				cursor.r += 1;
+
+				wb_learnings.Sheets[thisTitle] = encodeValue("Actions:", cursor, newSheet, false);
+				cursor.c += 1;
+
+				for (var l = 0; l < myModules[j].actions.length; l++) {
+					console.log("thisaction", myModules[j].actions[l].action);
+					wb_learnings.Sheets[thisTitle] = encodeValue(myModules[j].actions[l].action, cursor, newSheet, false);
+					cursor.r += 1;
+
+
+				}
+				cursor.c -= 1;
+				cursor.r += 2;
+			}
+
+		}
+
+	} catch (e) {
+		throw e;
+	}
+	console.log("Writing");
+	XLSX.writeFile(wb_learnings, 'learning.xls');
+
+
+	// get the learning gap
+
+	try {
+		const response = await got('http://165.227.162.247:8080/learning-gap');
+		var learningGap = response.body;
+
+		var wb_gap = {
+		  SheetNames: ["Info"],
+		  Sheets: {
+		    Info: {
+		      "!ref":"A1:A1",
+		      A1: { t:"s", v:"Welcome to the learning gap overview", s: {"font": {"bold": true}}}
+	    	}
+		  }
+		}
+
+		wb_gap.Props = {
+			Title: "MSF OCA HR Supply Learning",
+			Subject: "Tech Learning gap",
+			Author: "Dennis Vocke",
+			Manager: "Sheet Manager",
+			Company: "MSF OCA",
+			Category: "Experimentation",
+			Keywords: "Test",
+			Comments: "Nothing to say here",
+			LastAuthor: "Not SheetJS",
+			CreatedDate: new Date(2017,12,19)
+		};
+
+		console.log("LearningGap", JSON.stringify(learningGap));
+		for (var i = 0; i < learningGap.uncoveredActions.length; i++){
+
+			// var thisAction = learningGap.uncoveredActions[i].action;
+
+		}
+
+
+	} catch (e) {
+		throw e;
+	}
+
+
+}
+
+async function getFullLearnings() {
+	console.log("fetching all learning offers");
+
+	var fullLearnings = [];
+
+	try {
+		var learnings = await Learning.find();
+
+		for (var i = 0; i < learnings.length; i++) {
+			var thisLearning = learnings[i];
+			var theseModules = [];
+			for (var j = 0; j < learnings[i].modules.length; j++) {
+				var thisModule = await Module.findById(learnings[i].modules[j]);
+				// console.log("thisModule: ", thisModule);
+
+				var theseActions = [];
+
+				for (var k = 0; k < thisModule.actions.length; k++) {
+					var thisAction = await Action.findById(thisModule.actions[k]);
+					// console.log("This Action", thisAction);
+					theseActions.push(thisAction);
+				}
+				thisModule.actions = theseActions;
+
+				// console.log("Thismodule", thisModule);
+				theseModules.push(thisModule);
+			}
+			thisLearning.modules = theseModules;
+			fullLearnings.push(thisLearning);
+		}
+		return fullLearnings;
+	} catch (e) {
+		throw e;
+	}
+
 }
 async function getFullPositions() {
 	console.log("fetching full positions now");
