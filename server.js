@@ -551,7 +551,7 @@ app.post("/module", async (req, res) => {
 
 app.get('/modules', async (req, res) => {
 	try {
-		var modules = await Module.find();
+		var modules = await Module.find().sort({_id:1});
 		res.status(200).send({modules});
 	} catch (e) {
 		res.status(404).send(e);

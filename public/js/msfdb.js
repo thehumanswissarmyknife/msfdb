@@ -25,7 +25,7 @@ $(".navPos").click(function () {
 			$("<div/>", {id:"accordion-learnings"}).append(
 				$("<ul/>")
 				)
-			), 
+			),
 			$("<div/>", {id:"trashcan", class: "myDropzone-action"})
 		);
 
@@ -596,7 +596,7 @@ $(".navPos").click(function () {
 	}
 
 	function alertBoxActionRemoval(action, description, positions) {
-		if (confirm("you are about to remove '" + action.action + "' from '" + description.description + "'. This will affect these positions: " + positions) == true) {
+		if (confirm("you are about to remove '" + action.action + "' from '" + description.description + "'. This will affect these positions: " + positions) === true) {
 			console.log("remove that action");
 			$.getJSON("/removeactionfromdescription/" + action._id + "/" + description._id, function(description) {
 				console.log("Description updated:", description);
@@ -627,7 +627,7 @@ $(".navLearn").click(function () {
 			$("<div/>", {id:"accordion-positions"}).append(
 				$("<ul/>")
 				)
-			), 
+			),
 			$("<div/>", {id:"trashcan", class: "myDropzone-action"})
 		);
 
@@ -639,7 +639,8 @@ $(".navLearn").click(function () {
 			var thisId = element._id;
 
 			$("#sidebar").append(
-				$("<div/>", {id:"learning-accordion"})
+				$("<div/>", {id:"learning-accordion"}),
+				$("<div/>", {id:"learning-accordion-proposed"})
 				);
 
 
@@ -653,6 +654,22 @@ $(".navLearn").click(function () {
 						$("<ul/>")
 						)
 					);
+			}
+
+			if(element.status === "proposed") {
+
+				if($(".learning-proposed").length === 0) {
+					$("#learning-accordion-proposed").append(
+						$("<h3/>", {text:"proposed learning offers"}),
+						$("<div/>", {id:"learning-proposed", class:"learning-proposed"})
+						);
+				}
+
+				$("#learning-proposed").append(
+					$("<div/>", {class:"learning-box", id: thisId}).append(
+						$("<a>", {href:"#", text: element.name}))
+					);
+				
 			}
 
 			if(element.modules.length > 0){
@@ -699,6 +716,12 @@ $(".navLearn").click(function () {
 			heightStyle: "content",
 			active: 0
 		});
+		$( "#learning-accordion-proposed").accordion({
+			collapsible: true,
+			heightStyle: "content",
+			active: false
+		});
+
 	});
 
 	// get all positions  and fill them in the toolbar
@@ -847,9 +870,9 @@ $(".navLearn").click(function () {
 				$(".learning-length").append(thisLearning.length);
 			} else {
 				if(learningLength < 480) {
-					$(".learning-length").append("approximately " + parseInt(learningLength/60) + "h " + learningLength%60 + " minutes");
+					$(".learning-length").append("approximately " + parseInt(learningLength/60, 10) + "h " + learningLength%60 + " minutes");
 				} else {
-					$(".learning-length").append("approximately " + parseInt(learningLength/480) + " day(s) ");
+					$(".learning-length").append("approximately " + parseInt(learningLength/480, 10) + " day(s) ");
 				}
 			}
 			
